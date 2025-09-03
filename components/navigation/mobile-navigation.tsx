@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Search, ShoppingCart, User, Grid3X3 } from "lucide-react"
+import { Home, Search, ShoppingCart, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useRouter, usePathname } from "next/navigation"
@@ -11,11 +11,6 @@ const navigationItems = [
     name: "Home",
     href: "/",
     icon: Home,
-  },
-  {
-    name: "Categories",
-    href: "/categories",
-    icon: Grid3X3,
   },
   {
     name: "Search",

@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
+import { formatPrice } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 
 export default function NewProductPage() {
@@ -284,7 +285,7 @@ export default function NewProductPage() {
                 <div className="flex justify-between">
                   <span className="font-medium">Price:</span>
                   <span className="font-bold text-primary">
-                    {formData.price ? `MGA ${Number.parseInt(formData.price).toLocaleString()}` : "Not set"}
+                    {formData.price ? formatPrice(Number.parseInt(formData.price)) : "Not set"}
                   </span>
                 </div>
                 <div className="flex justify-between">

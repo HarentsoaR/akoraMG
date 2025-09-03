@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
+import { formatPrice } from "@/lib/utils"
 
 interface Product {
   id: number
@@ -34,15 +35,7 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const router = useRouter()
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("mg-MG", {
-      style: "currency",
-      currency: "MGA",
-      minimumFractionDigits: 0,
-    })
-      .format(price)
-      .replace("MGA", "MGA ")
-  }
+  
 
   return (
     <motion.div whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 300, damping: 25 }}>

@@ -237,7 +237,7 @@ const Home: React.FC = () => {
                     <Button
                       variant="contained"
                       size="large"
-                      onClick={() => navigate("/categories")}
+                      onClick={() => navigate("/products")}
                       endIcon={<ArrowForwardIcon />}
                       sx={{
                         px: 4,

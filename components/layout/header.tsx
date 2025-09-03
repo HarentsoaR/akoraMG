@@ -57,9 +57,7 @@ export function Header() {
             <Button variant="ghost" onClick={() => router.push("/products")}>
               Products
             </Button>
-            <Button variant="ghost" onClick={() => router.push("/categories")}>
-              Categories
-            </Button>
+            
             <Button variant="ghost" onClick={() => router.push("/artisans")}>
               Artisans
             </Button>
@@ -168,16 +166,7 @@ export function Header() {
                 >
                   Products
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start"
-                  onClick={() => {
-                    router.push("/categories")
-                    setIsMenuOpen(false)
-                  }}
-                >
-                  Categories
-                </Button>
+                
                 <Button
                   variant="ghost"
                   className="w-full justify-start"

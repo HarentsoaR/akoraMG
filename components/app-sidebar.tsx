@@ -30,34 +30,7 @@ const data = {
       isActive: true,
       badge: null,
     },
-    {
-      title: "Categories",
-      url: "/categories",
-      icon: Grid3X3,
-      badge: "12",
-      items: [
-        {
-          title: "Textiles",
-          url: "/categories/textiles",
-        },
-        {
-          title: "Wood Carving",
-          url: "/categories/wood-carving",
-        },
-        {
-          title: "Jewelry",
-          url: "/categories/jewelry",
-        },
-        {
-          title: "Pottery",
-          url: "/categories/pottery",
-        },
-        {
-          title: "Basketry",
-          url: "/categories/basketry",
-        },
-      ],
-    },
+    
     {
       title: "Search",
       url: "/search",

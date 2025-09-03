@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
+import { formatPrice } from "@/lib/utils"
 
 // Mock data - same as before but filtered by category
 const categoryData = {
@@ -213,9 +214,7 @@ export default function CategoryPage() {
     setSelectedMaterials((prev) => (prev.includes(material) ? prev.filter((m) => m !== material) : [...prev, material]))
   }
 
-  const formatPrice = (price: number) => {
-    return `MGA ${price.toLocaleString()}`
-  }
+  
 
   return (
     <div className="min-h-screen bg-background">

@@ -41,6 +41,7 @@ import {
 import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { ProductCard } from "@/components/products/product-card"
+import { formatPrice } from "@/lib/utils"
 
 // Mock product data
 const productData = {
@@ -301,9 +302,7 @@ const product = productData[Number(productId) as keyof typeof productData]
     )
   }
 
-  const formatPrice = (price: number) => {
-    return `MGA ${price.toLocaleString()}`
-  }
+  
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % product.images.length)

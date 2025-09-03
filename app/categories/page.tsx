@@ -12,6 +12,7 @@ import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
+import { formatPrice } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 
 // Mock data for categories and products
@@ -224,9 +225,7 @@ export default function CategoriesPage() {
     )
   }
 
-  const formatPrice = (price: number) => {
-    return `MGA ${price.toLocaleString()}`
-  }
+  
 
   return (
     <div className="min-h-screen bg-background">
@@ -601,7 +600,7 @@ export default function CategoriesPage() {
                   >
                     <Card 
                       className="cursor-pointer text-center p-4 hover:shadow-md transition-all duration-300"
-                      onClick={() => router.push(`/categories/${category.slug}`)}
+                      onClick={() => router.push(`/products?category=${category.slug}`)}
                     >
                       <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-primary/10 flex items-center justify-center">
                         <img

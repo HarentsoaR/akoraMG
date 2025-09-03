@@ -80,19 +80,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       path: "/search",
       badge: null,
     },
-    {
-      text: "Categories",
-      icon: <CategoryIcon />,
-      path: "/categories",
-      badge: "12",
-      subItems: [
-        { text: "Textiles", path: "/categories/textiles" },
-        { text: "Wood Carving", path: "/categories/wood-carving" },
-        { text: "Jewelry", path: "/categories/jewelry" },
-        { text: "Pottery", path: "/categories/pottery" },
-        { text: "Basketry", path: "/categories/basketry" },
-      ],
-    },
+    
     {
       text: "Wishlist",
       icon: <FavoriteIcon />,
