@@ -16,86 +16,16 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { ArtisanCard } from "@/components/artisans/artisan-card"
+import { ARTISANS } from "@/lib/data/artisans"
+import { useRouter } from "next/navigation"
 
-type Artisan = {
-  id: number
-  name: string
-  avatar?: string
-  location: string
-  rating: number
-  reviews: number
-  crafts: string[]
-  productsCount: number
-  yearsExperience: number
-  featured?: boolean
-  acceptsCustomOrders?: boolean
-  bio?: string
-}
-
-const allArtisans: Artisan[] = [
-  {
-    id: 1,
-    name: "Marie Razafy",
-    avatar: "/placeholder.svg?height=64&width=64",
-    location: "Antananarivo",
-    rating: 4.9,
-    reviews: 124,
-    crafts: ["Textiles", "Weaving", "Natural Dyes"],
-    productsCount: 23,
-    yearsExperience: 15,
-    featured: true,
-    acceptsCustomOrders: true,
-    bio: "Master weaver specializing in traditional Malagasy silk lamba using natural dyes.",
-  },
-  {
-    id: 2,
-    name: "Jean Rakotomalala",
-    avatar: "/placeholder.svg?height=64&width=64",
-    location: "Fianarantsoa",
-    rating: 4.8,
-    reviews: 98,
-    crafts: ["Wood Carving", "Sculpture"],
-    productsCount: 18,
-    yearsExperience: 20,
-    featured: true,
-    acceptsCustomOrders: false,
-    bio: "Traditional rosewood sculptor blending ancestral symbolism with modern forms.",
-  },
-  {
-    id: 3,
-    name: "Voahangy Rakoto",
-    location: "Antananarivo",
-    rating: 4.7,
-    reviews: 63,
-    crafts: ["Embroidery", "Textiles"],
-    productsCount: 12,
-    yearsExperience: 9,
-    acceptsCustomOrders: true,
-    bio: "Embroidery artist focused on ceremonial shawls with intricate gold thread.",
-  },
-  ...Array.from({ length: 24 }).map((_, i) => ({
-    id: 4 + i,
-    name: ["Hery Randriamanantsoa", "Paul Rakotonirina", "Sophie Andriamihaja", "Rasoa Raharimampionona"][i % 4],
-    location: ["Antsirabe", "Antananarivo", "Toamasina", "Fianarantsoa"][i % 4],
-    rating: 4 + ((i % 10) / 10),
-    reviews: 10 + (i % 80),
-    crafts: [
-      ["Pottery", "Clay"],
-      ["Metalwork", "Forging"],
-      ["Jewelry", "Filigree"],
-      ["Basketry", "Weaving"],
-    ][i % 4],
-    productsCount: 5 + (i % 40),
-    yearsExperience: 3 + (i % 25),
-    featured: i % 7 === 0,
-    acceptsCustomOrders: i % 3 === 0,
-  })),
-]
+const allArtisans = ARTISANS
 
 const crafts = ["All", "Textiles", "Wood Carving", "Jewelry", "Basketry", "Pottery", "Metalwork"]
 const locations = ["All", "Antananarivo", "Fianarantsoa", "Toamasina", "Antsirabe"]
 
 export default function ArtisansPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCraft, setSelectedCraft] = useState("All")
   const [selectedLocation, setSelectedLocation] = useState("All")
@@ -317,7 +247,10 @@ export default function ArtisansPage() {
                                     <Badge key={craft} variant="outline" className="text-xs">{craft}</Badge>
                                   ))}
                                 </div>
-                                {artisan.bio && <p className="text-sm text-muted-foreground line-clamp-2">{artisan.bio}</p>}
+                                {artisan.bio && <p className="text-sm text-muted-foreground clamp-2">{artisan.bio}</p>}
+                              </div>
+                              <div className="shrink-0 self-center">
+                                <Button size="sm" variant="outline" onClick={() => router.push(`/artisans/${artisan.id}`)}>View</Button>
                               </div>
                             </div>
                           </CardContent>
@@ -366,5 +299,3 @@ export default function ArtisansPage() {
     </div>
   )
 }
-
-

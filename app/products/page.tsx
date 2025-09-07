@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { motion } from "framer-motion"
-import { Search, Filter, Grid3X3, List, ArrowUpDown, MapPin, Star } from "lucide-react"
+import { Search, Filter, Grid3X3, List, ArrowUpDown, MapPin, Star, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,6 +18,7 @@ import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { ProductCard } from "@/components/products/product-card"
 import { formatPrice } from "@/lib/utils"
+import { PRODUCTS } from "@/lib/data/products"
 
 type Product = {
   id: number
@@ -36,132 +37,86 @@ type Product = {
   inStock: boolean
 }
 
-// Mock data (aligned with existing styles/content)
-const allProducts: Product[] = [
-  {
-    id: 1,
-    name: "Hand-woven Silk Lamba",
-    category: "Textiles",
-    price: 85000,
-    originalPrice: 95000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Marie Razafy",
-    location: "Antananarivo",
-    rating: 4.8,
-    reviews: 24,
-    isNew: true,
-    isFeatured: false,
-    materials: ["Silk", "Natural dyes"],
-    inStock: true,
-  },
-  {
-    id: 2,
-    name: "Carved Rosewood Sculpture",
-    category: "Wood Carving",
-    price: 150000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Jean Rakotomalala",
-    location: "Fianarantsoa",
-    rating: 4.9,
-    reviews: 18,
-    isNew: false,
-    isFeatured: true,
-    materials: ["Rosewood"],
-    inStock: true,
-  },
-  {
-    id: 3,
-    name: "Silver Filigree Necklace",
-    category: "Jewelry",
-    price: 65000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Sophie Andriamihaja",
-    location: "Antananarivo",
-    rating: 4.7,
-    reviews: 31,
-    isNew: false,
-    isFeatured: false,
-    materials: ["Sterling Silver"],
-    inStock: true,
-  },
-  {
-    id: 4,
-    name: "Raffia Storage Basket",
-    category: "Basketry",
-    price: 45000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Rasoa Raharimampionona",
-    location: "Toamasina",
-    rating: 4.6,
-    reviews: 15,
-    isNew: true,
-    isFeatured: false,
-    materials: ["Raffia Palm"],
-    inStock: false,
-  },
-  {
-    id: 5,
-    name: "Traditional Clay Pot",
-    category: "Pottery",
-    price: 35000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Hery Randriamanantsoa",
-    location: "Antsirabe",
-    rating: 4.5,
-    reviews: 12,
-    isNew: false,
-    isFeatured: false,
-    materials: ["Clay", "Natural glazes"],
-    inStock: true,
-  },
-  {
-    id: 6,
-    name: "Forged Iron Candle Holder",
-    category: "Metalwork",
-    price: 55000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Paul Rakotonirina",
-    location: "Antananarivo",
-    rating: 4.4,
-    reviews: 8,
-    isNew: false,
-    isFeatured: false,
-    materials: ["Iron"],
-    inStock: true,
-  },
-  // Duplicate set to simulate more results
-  ...Array.from({ length: 18 }).map((_, i) => ({
-    id: 7 + i,
-    name: `Artisan Craft ${i + 1}`,
-    category: ["Textiles", "Wood Carving", "Jewelry", "Basketry", "Pottery", "Metalwork"][i % 6],
-    price: 30000 + (i % 12) * 5000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: ["Rasoa", "Hery", "Jean", "Marie", "Voahangy", "Paul"][i % 6],
-    location: ["Antananarivo", "Fianarantsoa", "Toamasina", "Antsirabe"][i % 4],
-    rating: 4 + ((i % 10) / 10),
-    reviews: 5 + (i % 50),
-    isNew: i % 4 === 0,
-    isFeatured: i % 5 === 0,
-    materials: ["Natural dyes", "Silk", "Cotton", "Clay", "Iron", "Rosewood"].slice(0, 1 + (i % 3)),
-    inStock: i % 7 !== 0,
-  })),
+const allProducts: Product[] = PRODUCTS.map((p) => ({
+  id: p.id,
+  name: p.name,
+  category: p.category,
+  price: p.price,
+  originalPrice: p.originalPrice,
+  image: p.images[0] || "/placeholder.svg?height=300&width=400",
+  artisan: p.artisan.name,
+  location: p.artisan.location,
+  rating: p.rating,
+  reviews: p.reviews,
+  isNew: p.isNew,
+  isFeatured: p.isFeatured,
+  materials: p.materials,
+  inStock: p.inStock,
+}))
+
+// Categories with slugs + meta
+const categoryDefs = [
+  { label: "Textiles", slug: "textiles" },
+  { label: "Wood Carving", slug: "wood-carving" },
+  { label: "Jewelry", slug: "jewelry" },
+  { label: "Basketry", slug: "basketry" },
+  { label: "Pottery", slug: "pottery" },
+  { label: "Metalwork", slug: "metalwork" },
 ]
 
-const categories = [
-  "All",
-  "Textiles",
-  "Wood Carving",
-  "Jewelry",
-  "Basketry",
-  "Pottery",
-  "Metalwork",
-]
+const slugToLabel = (slug: string | null) => {
+  if (!slug) return null
+  const found = categoryDefs.find((c) => c.slug === slug.toLowerCase())
+  return found?.label ?? null
+}
+
+const labelToSlug = (label: string) => {
+  const found = categoryDefs.find((c) => c.label === label)
+  return found?.slug ?? label.toLowerCase().replace(/\s+/g, "-")
+}
+
+const categoryMeta: Record<string, { description: string; heritage: string; image: string }> = {
+  Textiles: {
+    description: "Traditional Malagasy fabrics, garments, and woven goods that showcase centuries of textile artistry.",
+    heritage:
+      "Malagasy textile traditions date back over 1,000 years, with techniques passed down through generations.",
+    image: "/placeholder.svg?height=400&width=800",
+  },
+  "Wood Carving": {
+    description: "Handcrafted wooden sculptures and decorative items carved from Madagascar's unique hardwoods.",
+    heritage: "Wood carving reflects the island's spiritual beliefs and deep connection to ancestry.",
+    image: "/placeholder.svg?height=400&width=800",
+  },
+  Jewelry: {
+    description: "Traditional and contemporary jewelry crafted with precious metals and local gemstones.",
+    heritage: "Malagasy jewelry blends ancient techniques with modern designs and symbolic meanings.",
+    image: "/placeholder.svg?height=400&width=800",
+  },
+  Basketry: {
+    description: "Woven baskets and storage made from sustainable local materials like raffia.",
+    heritage: "Basket weaving is essential to daily life, with regions having distinct patterns and techniques.",
+    image: "/placeholder.svg?height=400&width=800",
+  },
+  Pottery: {
+    description: "Ceramic vessels and decorative pottery shaped by skilled hands using traditional methods.",
+    heritage: "Pottery combines functional design with artistry using local clay across Madagascar.",
+    image: "/placeholder.svg?height=400&width=800",
+  },
+  Metalwork: {
+    description: "Forged metal items and decor showcasing traditional blacksmithing skills.",
+    heritage: "Metalworking traditions blend practical craftsmanship with decorative artistry.",
+    image: "/placeholder.svg?height=400&width=800",
+  },
+}
+
+const categories = ["All", ...categoryDefs.map((c) => c.label)]
 
 export default function ProductsPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string>(searchParams.get("category") || "All")
+  const initialCategory = useMemo(() => slugToLabel(searchParams.get("category")) ?? "All", [])
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory)
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 200000])
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([])
   const [showInStockOnly, setShowInStockOnly] = useState(false)
@@ -234,11 +189,11 @@ export default function ProductsPage() {
     setSortBy("featured")
   }
 
-  // Sync category to URL
+  // Sync category to URL (slugified)
   useEffect(() => {
     const params = new URLSearchParams(Array.from(searchParams.entries()))
     if (selectedCategory && selectedCategory !== "All") {
-      params.set("category", selectedCategory)
+      params.set("category", labelToSlug(selectedCategory))
     } else {
       params.delete("category")
     }
@@ -251,6 +206,30 @@ export default function ProductsPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory])
+
+  // Category counts and materials for UX
+  const categoryCounts = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const p of allProducts) {
+      map.set(p.category, (map.get(p.category) || 0) + 1)
+    }
+    return map
+  }, [])
+
+  const selectedCategoryMaterials = useMemo(() => {
+    if (selectedCategory === "All") return [] as string[]
+    const set = new Set<string>()
+    allProducts.filter((p) => p.category === selectedCategory).forEach((p) => p.materials.forEach((m) => set.add(m)))
+    return Array.from(set)
+  }, [selectedCategory])
+
+  const hasActiveFilters =
+    searchQuery.trim().length > 0 ||
+    selectedCategory !== "All" ||
+    selectedMaterials.length > 0 ||
+    showInStockOnly
+
+  const clearMaterial = (m: string) => setSelectedMaterials((prev) => prev.filter((x) => x !== m))
 
   const Filters = (
     <Card className="sticky top-24">
@@ -342,7 +321,96 @@ export default function ProductsPage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
+              {/* Browse by Category */}
+              <div className="mt-6 overflow-x-auto">
+                <div className="flex gap-3 justify-center min-w-max px-2">
+                  {categories.map((label) => (
+                    <Button
+                      key={label}
+                      variant={selectedCategory === label ? "default" : "outline"}
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => setSelectedCategory(label)}
+                    >
+                      {label}
+                      <Badge variant="secondary" className="ml-2">
+                        {label === "All" ? allProducts.length : (categoryCounts.get(label) || 0)}
+                      </Badge>
+                    </Button>
+                  ))}
+                </div>
+              </div>
             </motion.div>
+          </div>
+        </section>
+
+        {/* Category Overview when a specific category selected */}
+        {selectedCategory !== "All" && (
+          <section className="py-6">
+            <div className="container mx-auto px-4">
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="overflow-hidden rounded-2xl border bg-card">
+                <div className="grid md:grid-cols-3">
+                  <div className="p-6 md:col-span-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="secondary">Category</Badge>
+                      <Badge>{selectedCategory}</Badge>
+                    </div>
+                    <h2 className="text-2xl font-bold mb-2">{selectedCategory}</h2>
+                    <p className="text-muted-foreground mb-3">{categoryMeta[selectedCategory]?.description}</p>
+                    <p className="text-sm text-muted-foreground">{categoryMeta[selectedCategory]?.heritage}</p>
+                    <div className="mt-4 flex flex-wrap gap-3 text-sm">
+                      <div className="flex items-center gap-2 rounded-lg border px-3 py-1.5">
+                        <span className="font-medium">{categoryCounts.get(selectedCategory) || 0}</span>
+                        <span className="text-muted-foreground">items</span>
+                      </div>
+                      {selectedCategoryMaterials.slice(0, 4).map((m) => (
+                        <Badge key={m} variant="outline">{m}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="relative hidden md:block">
+                    <img src={categoryMeta[selectedCategory]?.image || "/placeholder.svg"} alt={selectedCategory} className="absolute inset-0 h-full w-full object-cover" />
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </section>
+        )}
+
+        {/* Featured Categories Strip */}
+        <section className="py-6">
+          <div className="container mx-auto px-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Featured Categories</h3>
+              {selectedCategory !== "All" && (
+                <Button variant="ghost" size="sm" onClick={() => setSelectedCategory("All")}>Clear category</Button>
+              )}
+            </div>
+            <div className="no-scrollbar -mx-2 flex gap-4 overflow-x-auto px-2">
+              {categoryDefs.map((c) => (
+                <button
+                  key={c.slug}
+                  className={`relative h-28 w-56 shrink-0 overflow-hidden rounded-xl border text-left transition-transform hover:scale-[1.01] ${
+                    selectedCategory === c.label ? "ring-2 ring-primary" : ""
+                  }`}
+                  onClick={() => setSelectedCategory(c.label)}
+                  aria-label={`Select ${c.label}`}
+                >
+                  <img
+                    src={categoryMeta[c.label]?.image || "/placeholder.svg"}
+                    alt={c.label}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-black/10" />
+                  <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between text-white">
+                    <div className="font-semibold">{c.label}</div>
+                    <div className="rounded-md bg-white/20 px-2 py-0.5 text-xs backdrop-blur">
+                      {categoryCounts.get(c.label) || 0} items
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -400,6 +468,29 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
+                {/* Active Filters */}
+                {hasActiveFilters && (
+                  <div className="mb-4 flex flex-wrap items-center gap-2">
+                    {searchQuery.trim().length > 0 && (
+                      <Button variant="secondary" size="sm" className="h-8 rounded-full" onClick={() => setSearchQuery("")}>Search: "{searchQuery}" <X className="ml-2 h-3 w-3" /></Button>
+                    )}
+                    {selectedCategory !== "All" && (
+                      <Button variant="secondary" size="sm" className="h-8 rounded-full" onClick={() => setSelectedCategory("All")}>{selectedCategory} <X className="ml-2 h-3 w-3" /></Button>
+                    )}
+                    {selectedMaterials.map((m) => (
+                      <Button key={m} variant="secondary" size="sm" className="h-8 rounded-full" onClick={() => clearMaterial(m)}>
+                        {m} <X className="ml-2 h-3 w-3" />
+                      </Button>
+                    ))}
+                    {showInStockOnly && (
+                      <Button variant="secondary" size="sm" className="h-8 rounded-full" onClick={() => setShowInStockOnly(false)}>
+                        In stock <X className="ml-2 h-3 w-3" />
+                      </Button>
+                    )}
+                    <Button variant="ghost" size="sm" onClick={clearAll}>Clear all</Button>
+                  </div>
+                )}
+
                 {/* Grid/List */}
                 <motion.div layout className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
                   {pageItems.map((product) => (
@@ -424,7 +515,10 @@ export default function ProductsPage() {
                           materials: product.materials,
                         }} />
                       ) : (
-                        <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 flex">
+                        <Card
+                          className="group overflow-hidden hover:shadow-lg transition-all duration-300 flex cursor-pointer"
+                          onClick={() => router.push(`/products/${product.id}`)}
+                        >
                           <div className="relative w-48 h-32 overflow-hidden">
                             <img src={product.image || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           </div>
@@ -527,5 +621,3 @@ export default function ProductsPage() {
     </div>
   )
 }
-
-

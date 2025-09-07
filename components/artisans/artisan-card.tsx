@@ -35,26 +35,29 @@ export function ArtisanCard({ artisan }: ArtisanCardProps) {
     .join("")
 
   return (
-    <Card className="group h-full overflow-hidden border-0 shadow-md transition-all duration-300 hover:shadow-xl">
+    <Card className="group h-full overflow-hidden border bg-card shadow-sm transition-all duration-300 hover:shadow-lg">
       <CardContent className="p-4 h-full flex flex-col">
-        <div className="flex items-start gap-4 flex-1">
-          <Avatar className="h-14 w-14 flex-shrink-0">
+        <div className="grid grid-cols-[56px,1fr] gap-3 flex-1">
+          <Avatar className="h-14 w-14">
             <AvatarImage src={artisan.avatar || "/placeholder.svg"} alt={artisan.name} />
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
 
-          <div className="flex-1 min-w-0 space-y-2">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold leading-tight">{artisan.name}</h3>
-              {artisan.featured && <Badge className="bg-purple-500 text-white">Featured</Badge>}
-              {artisan.acceptsCustomOrders && (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <Award className="h-3 w-3" /> Custom Orders
-                </Badge>
-              )}
+          <div className="min-w-0 flex-1">
+            {/* Name on its own line for readability */}
+            <div className="flex flex-col">
+              <h3 className="font-semibold leading-tight text-base sm:text-lg clamp-2 pr-1">{artisan.name}</h3>
+              <div className="mt-1 flex flex-wrap items-center gap-1">
+                {artisan.featured && <Badge className="bg-purple-500 text-white">Featured</Badge>}
+                {artisan.acceptsCustomOrders && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <Award className="h-3 w-3" /> Custom
+                  </Badge>
+                )}
+              </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+            <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1">
                 <MapPin className="h-3 w-3" /> {artisan.location}
               </span>
@@ -62,31 +65,30 @@ export function ArtisanCard({ artisan }: ArtisanCardProps) {
                 <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" /> {artisan.rating}
                 <span className="text-xs">({artisan.reviews})</span>
               </span>
-              <span>{artisan.productsCount} products</span>
-              <span>{artisan.yearsExperience} years experience</span>
             </div>
 
-            <div className="flex flex-wrap gap-1">
-              {artisan.crafts.slice(0, 3).map((craft) => (
+            {/* Trim non-essential stats on grid cards for clarity */}
+
+            <div className="mt-2 flex flex-wrap gap-1">
+              {artisan.crafts.slice(0, 2).map((craft) => (
                 <Badge key={craft} variant="outline" className="text-xs">
                   {craft}
                 </Badge>
               ))}
-              {artisan.crafts.length > 3 && (
-                <Badge variant="outline" className="text-xs">+{artisan.crafts.length - 3}</Badge>
+              {artisan.crafts.length > 2 && (
+                <Badge variant="outline" className="text-xs">+{artisan.crafts.length - 2}</Badge>
               )}
             </div>
 
-            {artisan.bio && <p className="hidden sm:block text-sm text-muted-foreground line-clamp-2">{artisan.bio}</p>}
+            {/* Keep bio hidden in compact grid for a cleaner look */}
+            {artisan.bio && <p className="mt-2 hidden sm:block text-sm text-muted-foreground clamp-2">{artisan.bio}</p>}
           </div>
         </div>
 
         <div className="mt-4 flex justify-end">
-          <Button size="sm" onClick={() => router.push(`/artisans?highlight=${artisan.id}`)}>View</Button>
+          <Button size="sm" variant="outline" onClick={() => router.push(`/artisans/${artisan.id}`)}>View</Button>
         </div>
       </CardContent>
     </Card>
   )
 }
-
-
