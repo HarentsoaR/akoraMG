@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
 import { Search, Filter, Grid3X3, List, ArrowUpDown, MapPin, Star, Heart, Eye } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -13,13 +13,13 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { formatPrice } from "@/lib/utils"
-import { PRODUCTS } from "@/lib/data/products"
+import { useProducts } from "@/components/providers/products-provider"
 import { useRouter } from "next/navigation"
 
 // Helpers to map centralized data
 const slugify = (label: string) => label.toLowerCase().replace(/\s+/g, "-")
 
-const allProducts = PRODUCTS.map((p) => ({
+const mapProducts = (list: any[]) => list.map((p: any) => ({
   id: p.id,
   name: p.name,
   category: slugify(p.category),
@@ -36,42 +36,47 @@ const allProducts = PRODUCTS.map((p) => ({
   inStock: p.inStock,
 }))
 
-const categories = Array.from(
-  allProducts.reduce((map, p) => {
-    const key = p.category
-    const name = key
-      .split("-")
-      .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
-      .join(" ")
-    if (!map.has(key)) {
-      map.set(key, {
-        id: map.size + 1,
-        name,
-        slug: key,
-        count: 0,
-        image: p.image,
-        description:
-          key === "textiles"
-            ? "Traditional fabrics, clothing, and woven goods"
-            : key === "wood-carving"
-            ? "Handcrafted wooden sculptures and decorative items"
-            : key === "jewelry"
-            ? "Traditional and contemporary jewelry pieces"
-            : key === "basketry"
-            ? "Woven baskets and storage solutions"
-            : key === "pottery"
-            ? "Ceramic vessels and decorative pottery"
-            : "Forged metal items and decorative pieces",
-        featured: ["textiles", "wood-carving"].includes(key),
-      })
-    }
-    const item = map.get(key) as any
-    item.count += 1
-    return map
-  }, new Map<string, any>())
-).map(([, v]) => v)
+// will be computed inside component after products map
 
 export default function CategoriesPage() {
+  const { products } = useProducts()
+  const allProducts = mapProducts(products)
+  const categoryList = useMemo(() => (
+    Array.from(
+      allProducts.reduce((map, p) => {
+        const key = p.category
+        const name = key
+          .split("-")
+          .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+          .join(" ")
+        if (!map.has(key)) {
+          map.set(key, {
+            id: map.size + 1,
+            name,
+            slug: key,
+            count: 0,
+            image: p.image,
+            description:
+              key === "textiles"
+                ? "Traditional fabrics, clothing, and woven goods"
+                : key === "wood-carving"
+                ? "Handcrafted wooden sculptures and decorative items"
+                : key === "jewelry"
+                ? "Traditional and contemporary jewelry pieces"
+                : key === "basketry"
+                ? "Woven baskets and storage solutions"
+                : key === "pottery"
+                ? "Ceramic vessels and decorative pottery"
+                : "Forged metal items and decorative pieces",
+            featured: ["textiles", "wood-carving"].includes(key),
+          })
+        }
+        const item = map.get(key) as any
+        item.count += 1
+        return map
+      }, new Map<string, any>())
+    ).map(([, v]) => v)
+  ), [allProducts])
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
@@ -174,7 +179,7 @@ export default function CategoriesPage() {
             >
               <h2 className="text-2xl font-bold mb-6">Featured Categories</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {categories.filter(cat => cat.featured).map((category) => (
+                {categoryList.filter(cat => cat.featured).map((category) => (
                   <motion.div
                     key={category.id}
                     whileHover={{ scale: 1.02 }}
@@ -241,7 +246,7 @@ export default function CategoriesPage() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">All Categories</SelectItem>
-                            {categories.map((category) => (
+                            {categoryList.map((category) => (
                               <SelectItem key={category.id} value={category.slug}>
                                 {category.name} ({category.count})
                               </SelectItem>
@@ -496,7 +501,7 @@ export default function CategoriesPage() {
             >
               <h2 className="text-2xl font-bold mb-6">All Categories</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {categories.map((category) => (
+                {categoryList.map((category) => (
                   <motion.div
                     key={category.id}
                     whileHover={{ scale: 1.05 }}

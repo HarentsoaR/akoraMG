@@ -21,7 +21,7 @@ import {
 import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { formatPrice } from "@/lib/utils"
-import { PRODUCTS } from "@/lib/data/products"
+import { useProducts } from "@/components/providers/products-provider"
 
 // Category meta
 const categoryData = {
@@ -74,7 +74,7 @@ const categoryData = {
 
 const slugify = (label: string) => label.toLowerCase().replace(/\s+/g, "-")
 
-const allProducts = PRODUCTS.map((p) => ({
+const mapProducts = (list: any[]) => list.map((p: any) => ({
   id: p.id,
   name: p.name,
   category: slugify(p.category),
@@ -96,6 +96,8 @@ export default function CategoryPage() {
   const params = useParams()
   const router = useRouter()
   const categorySlug = params.category as string
+  const { products } = useProducts()
+  const allProducts = mapProducts(products)
 
   const [priceRange, setPriceRange] = useState([0, 200000])
   const [sortBy, setSortBy] = useState("featured")

@@ -7,17 +7,18 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { Search } from "lucide-react"
-import { PRODUCTS } from "@/lib/data/products"
+import { useProducts } from "@/components/providers/products-provider"
 import { ARTISANS } from "@/lib/data/artisans"
 import { ProductCard } from "@/components/products/product-card"
 
 export default function SearchClient() {
   const [q, setQ] = useState("")
+  const { products } = useProducts()
 
   const matches = useMemo(() => {
     if (!q.trim()) return [] as any[]
     const query = q.toLowerCase()
-    return PRODUCTS.filter((p) =>
+    return products.filter((p) =>
       p.name.toLowerCase().includes(query) ||
       p.category.toLowerCase().includes(query) ||
       p.materials.some((m) => m.toLowerCase().includes(query)) ||

@@ -42,7 +42,7 @@ import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { ProductCard } from "@/components/products/product-card"
 import { formatPrice } from "@/lib/utils"
-import { PRODUCTS } from "@/lib/data/products"
+import { useProducts } from "@/components/providers/products-provider"
 import { ARTISANS } from "@/lib/data/artisans"
 import { useCart } from "@/components/providers/cart-provider"
 import { useWishlist } from "@/components/providers/wishlist-provider"
@@ -51,8 +51,8 @@ import { useWishlist } from "@/components/providers/wishlist-provider"
 const slugify = (label: string) => label.toLowerCase().replace(/\s+/g, "-")
 
 // Mock related products
-const relatedFromCentral = (categorySlug: string, excludeId: number) =>
-  PRODUCTS.filter((p) => slugify(p.category) === categorySlug && p.id !== excludeId).slice(0, 4).map((p) => ({
+const relatedFromCentral = (list: any[], categorySlug: string, excludeId: number) =>
+  list.filter((p) => slugify(p.category) === categorySlug && p.id !== excludeId).slice(0, 4).map((p) => ({
     id: p.id,
     name: p.name,
     artisan: p.artisan.name,
@@ -114,13 +114,14 @@ export default function ProductDetailPage() {
   const productId = params.id as string
   const { addItem } = useCart()
   const { isWished, toggle } = useWishlist()
+  const { products } = useProducts()
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [isFavorited, setIsFavorited] = useState(false)
   const [selectedTab, setSelectedTab] = useState("description")
 
-const productSource = PRODUCTS.find((p) => p.id === Number(productId))
+const productSource = products.find((p) => p.id === Number(productId))
 const artisan = productSource ? ARTISANS.find((a) => a.name === productSource.artisan.name && a.location === productSource.artisan.location) : undefined
 const product = productSource
   ? {
@@ -764,7 +765,7 @@ const product = productSource
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {relatedFromCentral(slugify(product.category), product.id).map((relatedProduct) => (
+              {relatedFromCentral(products, slugify(product.category), product.id).map((relatedProduct) => (
                 <ProductCard key={relatedProduct.id} product={relatedProduct} />
               ))}
             </div>

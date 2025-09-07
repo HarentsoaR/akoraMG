@@ -7,6 +7,8 @@ import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider } from "@/components/providers/auth-provider"
 import { CartProvider } from "@/components/providers/cart-provider"
 import { WishlistProvider } from "@/components/providers/wishlist-provider"
+import { ProductsProvider } from "@/components/providers/products-provider"
+import { OrdersProvider } from "@/components/providers/orders-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -28,8 +30,12 @@ export default function RootLayout({
           <AuthProvider>
             <CartProvider>
               <WishlistProvider>
-                {children}
-                <Toaster />
+                <ProductsProvider>
+                  <OrdersProvider>
+                    {children}
+                    <Toaster />
+                  </OrdersProvider>
+                </ProductsProvider>
               </WishlistProvider>
             </CartProvider>
           </AuthProvider>

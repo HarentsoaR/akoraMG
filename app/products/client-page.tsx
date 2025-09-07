@@ -18,7 +18,7 @@ import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { ProductCard } from "@/components/products/product-card"
 import { formatPrice } from "@/lib/utils"
-import { PRODUCTS } from "@/lib/data/products"
+import { useProducts } from "@/components/providers/products-provider"
 
 type Product = {
   id: number
@@ -37,22 +37,7 @@ type Product = {
   inStock: boolean
 }
 
-const allProducts: Product[] = PRODUCTS.map((p) => ({
-  id: p.id,
-  name: p.name,
-  category: p.category,
-  price: p.price,
-  originalPrice: p.originalPrice,
-  image: p.images[0] || "/placeholder.svg?height=300&width=400",
-  artisan: p.artisan.name,
-  location: p.artisan.location,
-  rating: p.rating,
-  reviews: p.reviews,
-  isNew: p.isNew,
-  isFeatured: p.isFeatured,
-  materials: p.materials,
-  inStock: p.inStock,
-}))
+let allProducts: Product[] = []
 
 // Categories with slugs + meta
 const categoryDefs = [
@@ -112,6 +97,23 @@ const categoryMeta: Record<string, { description: string; heritage: string; imag
 const categories = ["All", ...categoryDefs.map((c) => c.label)]
 
 export default function ProductsPageClient() {
+  const { products } = useProducts()
+  allProducts = products.map((p) => ({
+    id: p.id,
+    name: p.name,
+    category: p.category,
+    price: p.price,
+    originalPrice: p.originalPrice,
+    image: p.images[0] || "/placeholder.svg?height=300&width=400",
+    artisan: p.artisan.name,
+    location: p.artisan.location,
+    rating: p.rating,
+    reviews: p.reviews,
+    isNew: p.isNew,
+    isFeatured: p.isFeatured,
+    materials: p.materials,
+    inStock: p.inStock,
+  }))
   const searchParams = useSearchParams()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")

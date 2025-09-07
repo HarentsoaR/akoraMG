@@ -8,9 +8,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Minus, Plus, Trash2 } from "lucide-react"
 import { formatPrice } from "@/lib/utils"
+import { useOrders } from "@/components/providers/orders-provider"
+import { useRouter } from "next/navigation"
 
 export default function CartPage() {
   const { items, subtotal, totalItems, updateQuantity, removeItem, clearCart } = useCart()
+  const { placeOrder } = useOrders()
+  const router = useRouter()
 
   return (
     <div className="min-h-screen bg-background">
@@ -75,7 +79,25 @@ export default function CartPage() {
                     <span>Subtotal</span>
                     <span className="font-semibold">{formatPrice(subtotal)}</span>
                   </div>
-                  <Button className="w-full">Checkout</Button>
+                  <Button
+                    className="w-full"
+                    onClick={() => {
+                      if (items.length === 0) return
+                      const order = placeOrder(
+                        items.map((i) => ({
+                          productId: i.id,
+                          name: i.name,
+                          image: i.image,
+                          price: i.price,
+                          quantity: i.quantity,
+                        }))
+                      )
+                      clearCart()
+                      router.push(`/orders`)
+                    }}
+                  >
+                    Checkout
+                  </Button>
                   <Button variant="outline" className="w-full" onClick={clearCart}>Clear cart</Button>
                 </CardContent>
               </Card>

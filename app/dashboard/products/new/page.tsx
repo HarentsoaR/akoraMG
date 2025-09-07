@@ -14,11 +14,14 @@ import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/layout/header"
 import { formatPrice } from "@/lib/utils"
 import { useRouter } from "next/navigation"
+import { useProducts } from "@/components/providers/products-provider"
 
 export default function NewProductPage() {
   const router = useRouter()
+  const { addProduct } = useProducts()
   const [currentStep, setCurrentStep] = useState(1)
   const [aiEnabled, setAiEnabled] = useState(false)
+  const [images, setImages] = useState<string[]>([])
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -75,6 +78,23 @@ export default function NewProductPage() {
     }
   }
 
+  const onFilesSelected = async (fileList: FileList | null) => {
+    if (!fileList) return
+    const files = Array.from(fileList)
+    const dataUrls = await Promise.all(
+      files.slice(0, 4).map(
+        (file) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(String(reader.result))
+            reader.onerror = reject
+            reader.readAsDataURL(file)
+          })
+      )
+    )
+    setImages((prev) => [...prev, ...dataUrls].slice(0, 4))
+  }
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
@@ -86,15 +106,24 @@ export default function NewProductPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                <div className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors cursor-pointer">
+                <label className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors cursor-pointer">
                   <Camera className="h-8 w-8 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">Take Photo</span>
-                </div>
-                <div className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors cursor-pointer">
+                  <input type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => onFilesSelected(e.target.files)} />
+                </label>
+                <label className="aspect-square border-2 border-dashed border-muted-foreground/25 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors cursor-pointer">
                   <Upload className="h-8 w-8 text-muted-foreground" />
                   <span className="text-sm text-muted-foreground">Upload Image</span>
-                </div>
+                  <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => onFilesSelected(e.target.files)} />
+                </label>
               </div>
+              {images.length > 0 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {images.map((src, i) => (
+                    <img key={i} src={src} alt={`upload ${i + 1}`} className="aspect-square rounded-lg object-cover" />
+                  ))}
+                </div>
+              )}
               <p className="text-sm text-muted-foreground">
                 Tip: Use natural lighting and show your product from multiple angles for best results.
               </p>
@@ -306,7 +335,21 @@ export default function NewProductPage() {
                   <Eye className="h-4 w-4 mr-2" />
                   Preview
                 </Button>
-                <Button className="flex-1">
+                <Button
+                  className="flex-1"
+                  onClick={() => {
+                    const id = addProduct({
+                      name: formData.name || "Untitled",
+                      category: (formData.category as any) || "Textiles",
+                      price: Number(formData.price || 0),
+                      images,
+                      materials: formData.materials ? formData.materials.split(",").map((s) => s.trim()).filter(Boolean) : [],
+                      inStock: Number(formData.quantity || 0) > 0,
+                      createdBy: "1",
+                    })
+                    router.push(`/products/${id}`)
+                  }}
+                >
                   <Save className="h-4 w-4 mr-2" />
                   Publish Product
                 </Button>
