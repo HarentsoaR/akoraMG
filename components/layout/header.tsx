@@ -17,12 +17,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/components/providers/cart-provider"
+import { useWishlist } from "@/components/providers/wishlist-provider"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const router = useRouter()
   const { totalItems } = useCart()
+  const { count: wishlistCount } = useWishlist()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -90,9 +92,11 @@ export function Header() {
             </Button>
 
             {/* Wishlist */}
-            <Button variant="ghost" size="sm" className="relative">
+            <Button variant="ghost" size="sm" className="relative" onClick={() => router.push("/wishlist")}> 
               <Heart className="h-5 w-5" />
-              <Badge className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full p-0 text-[10px] leading-none">2</Badge>
+              {wishlistCount > 0 && (
+                <Badge className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full p-0 text-[10px] leading-none">{wishlistCount}</Badge>
+              )}
             </Button>
 
             {/* Cart */}

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
 import { formatPrice } from "@/lib/utils"
+import { useWishlist } from "@/components/providers/wishlist-provider"
 
 interface Product {
   id: number
@@ -34,6 +35,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const router = useRouter()
+  const { isWished, toggle } = useWishlist()
 
   
 
@@ -61,8 +63,24 @@ export function ProductCard({ product }: ProductCardProps) {
 
           {/* Action buttons */}
           <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 transition-opacity group-hover:opacity-100">
-            <Button size="sm" variant="secondary" className="h-8 w-8 p-0">
-              <Heart className="h-4 w-4" />
+            <Button
+              size="sm"
+              variant="secondary"
+              className="h-8 w-8 p-0"
+              onClick={(e) => {
+                e.stopPropagation()
+                toggle({
+                  id: product.id,
+                  name: product.name,
+                  image: product.image,
+                  artisan: product.artisan,
+                  price: product.price,
+                  originalPrice: product.originalPrice,
+                  category: product.category,
+                })
+              }}
+            >
+              <Heart className={`h-4 w-4 ${isWished(product.id) ? "fill-red-500 text-red-500" : ""}`} />
             </Button>
             <Button size="sm" variant="secondary" className="h-8 w-8 p-0">
               <Eye className="h-4 w-4" />

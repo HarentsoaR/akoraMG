@@ -45,6 +45,7 @@ import { formatPrice } from "@/lib/utils"
 import { PRODUCTS } from "@/lib/data/products"
 import { ARTISANS } from "@/lib/data/artisans"
 import { useCart } from "@/components/providers/cart-provider"
+import { useWishlist } from "@/components/providers/wishlist-provider"
 
 // Helpers
 const slugify = (label: string) => label.toLowerCase().replace(/\s+/g, "-")
@@ -112,6 +113,7 @@ export default function ProductDetailPage() {
   const router = useRouter()
   const productId = params.id as string
   const { addItem } = useCart()
+  const { isWished, toggle } = useWishlist()
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
@@ -467,8 +469,23 @@ const product = productSource
                     <ShoppingCart className="mr-2 h-4 w-4" />
                     Add to Cart
                   </Button>
-                  <Button variant="outline" size="lg">
-                    Buy Now
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() =>
+                      toggle({
+                        id: product.id,
+                        name: product.name,
+                        image: product.images[0] || "/placeholder.svg?height=300&width=400",
+                        artisan: product.artisan.name,
+                        price: product.price,
+                        originalPrice: product.originalPrice,
+                        category: product.category,
+                      })
+                    }
+                  >
+                    <Heart className={`mr-2 h-4 w-4 ${isWished(product.id) ? "fill-red-500 text-red-500" : ""}`} />
+                    {isWished(product.id) ? "Wishlisted" : "Add to Wishlist"}
                   </Button>
                 </div>
               </div>
