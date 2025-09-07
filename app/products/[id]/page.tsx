@@ -44,6 +44,7 @@ import { ProductCard } from "@/components/products/product-card"
 import { formatPrice } from "@/lib/utils"
 import { PRODUCTS } from "@/lib/data/products"
 import { ARTISANS } from "@/lib/data/artisans"
+import { useCart } from "@/components/providers/cart-provider"
 
 // Helpers
 const slugify = (label: string) => label.toLowerCase().replace(/\s+/g, "-")
@@ -110,6 +111,7 @@ export default function ProductDetailPage() {
   const params = useParams()
   const router = useRouter()
   const productId = params.id as string
+  const { addItem } = useCart()
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
@@ -192,8 +194,18 @@ const product = productSource
   }
 
   const addToCart = () => {
-    // Add to cart logic
-    console.log(`Added ${quantity} of product ${product.id} to cart`)
+    addItem(
+      {
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        image: product.images[0] || "/placeholder.svg?height=300&width=400",
+        artisan: product.artisan.name,
+        stockQuantity: product.stockQuantity,
+      },
+      quantity,
+    )
   }
 
   const shareProduct = () => {

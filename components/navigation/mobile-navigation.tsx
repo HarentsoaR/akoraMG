@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useRouter, usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { useCart } from "@/components/providers/cart-provider"
 
 const navigationItems = [
   {
@@ -33,6 +34,7 @@ const navigationItems = [
 export function MobileNavigation() {
   const router = useRouter()
   const pathname = usePathname()
+  const { totalItems } = useCart()
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
@@ -54,11 +56,11 @@ export function MobileNavigation() {
             >
               <div className="relative">
                 <Icon className="h-5 w-5" />
-                {item.badge && (
+                {(item.name === "Cart" ? totalItems : item.badge) ? (
                   <Badge className="absolute -top-2 -right-2 flex h-4 min-w-[18px] items-center justify-center rounded-full p-0 text-[10px] leading-none">
-                    {item.badge}
+                    {item.name === "Cart" ? totalItems : item.badge}
                   </Badge>
-                )}
+                ) : null}
               </div>
               <span className="text-xs font-medium">{item.name}</span>
             </Button>
