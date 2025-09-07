@@ -42,196 +42,32 @@ import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { ProductCard } from "@/components/products/product-card"
 import { formatPrice } from "@/lib/utils"
+import { PRODUCTS } from "@/lib/data/products"
+import { ARTISANS } from "@/lib/data/artisans"
 
-// Mock product data
-const productData = {
-  1: {
-    id: 1,
-    name: "Hand-woven Silk Lamba",
-    artisan: {
-      name: "Marie Razafy",
-      avatar: "/placeholder.svg?height=64&width=64",
-      location: "Antananarivo",
-      rating: 4.9,
-      totalProducts: 23,
-      yearsExperience: 15,
-      verified: true,
-    },
-    price: 85000,
-    originalPrice: 95000,
-    discount: 11,
-    images: [
-      "/placeholder.svg?height=600&width=600",
-      "/placeholder.svg?height=600&width=600",
-      "/placeholder.svg?height=600&width=600",
-      "/placeholder.svg?height=600&width=600",
-    ],
-    rating: 4.8,
-    reviews: 24,
-    category: "Textiles",
-    subcategory: "Traditional Garments",
-    isNew: true,
-    isFeatured: false,
-    isPopular: false,
-    isLimited: false,
-    inStock: true,
-    stockQuantity: 3,
-    materials: ["Pure Silk", "Natural Dyes", "Traditional Threads"],
-    dimensions: "180cm x 120cm",
-    weight: "0.8kg",
-    description:
-      "This exquisite hand-woven silk lamba represents the pinnacle of Malagasy textile artistry. Crafted using traditional techniques passed down through generations, each thread tells a story of cultural heritage and skilled craftsmanship. The intricate patterns and vibrant colors are achieved using natural dyes sourced from local plants, making each piece truly unique.",
-    culturalSignificance:
-      "The lamba is more than just a garment; it's a symbol of Malagasy identity and tradition. Traditionally worn during important ceremonies and celebrations, this silk lamba represents prosperity and respect for ancestral customs. The specific patterns woven into this piece tell stories of the highlands and carry blessings for the wearer.",
-    craftingProcess:
-      "This lamba was created over 3 months using a traditional backstrap loom. The silk threads are hand-spun and dyed using traditional methods with natural pigments from local plants. Each pattern is carefully planned and executed, requiring exceptional skill and patience.",
-    careInstructions: [
-      "Hand wash only in cold water",
-      "Use mild, natural detergent",
-      "Air dry away from direct sunlight",
-      "Store folded with acid-free tissue paper",
-      "Professional cleaning recommended for deep cleaning",
-    ],
-    shippingInfo: {
-      domestic: "2-3 business days",
-      international: "7-14 business days",
-      freeShippingThreshold: 100000,
-    },
-    returnPolicy: "30-day return policy for unused items",
-    authenticity: "Certificate of authenticity included",
-    tags: ["handwoven", "silk", "traditional", "ceremonial", "luxury", "heritage"],
-  },
-  2: {
-    id: 2,
-    name: "Carved Rosewood Sculpture",
-    artisan: {
-      name: "Jean Rakotomalala",
-      avatar: "/placeholder.svg?height=64&width=64",
-      location: "Fianarantsoa",
-      rating: 4.9,
-      totalProducts: 18,
-      yearsExperience: 20,
-      verified: true,
-    },
-    price: 150000,
-    originalPrice: undefined,
-    discount: undefined,
-    images: [
-      "/placeholder.svg?height=600&width=600",
-      "/placeholder.svg?height=600&width=600",
-      "/placeholder.svg?height=600&width=600",
-    ],
-    rating: 4.9,
-    reviews: 18,
-    category: "Wood Carving",
-    subcategory: "Sculptures",
-    isNew: false,
-    isFeatured: true,
-    isPopular: false,
-    isLimited: true,
-    inStock: true,
-    stockQuantity: 1,
-    materials: ["Rosewood", "Natural Finish"],
-    dimensions: "25cm x 15cm x 30cm",
-    weight: "2.1kg",
-    description:
-      "Masterfully carved from premium Madagascar rosewood, this sculpture embodies the spiritual essence of Malagasy ancestral beliefs. The intricate details and smooth finish showcase decades of woodworking expertise.",
-    culturalSignificance:
-      "This sculpture represents the connection between the living and ancestral spirits in Malagasy tradition. The carved figures symbolize protection and guidance from ancestors.",
-    craftingProcess:
-      "Hand-carved over 6 weeks using traditional tools. The rosewood was naturally aged for 2 years before carving to ensure stability and prevent cracking.",
-    careInstructions: [
-      "Dust regularly with soft, dry cloth",
-      "Avoid direct sunlight and moisture",
-      "Apply natural wood oil annually",
-      "Handle with care to preserve details",
-    ],
-    shippingInfo: {
-      domestic: "3-5 business days",
-      international: "10-21 business days",
-      freeShippingThreshold: 100000,
-    },
-    returnPolicy: "14-day return policy for unused items",
-    authenticity: "Certificate of authenticity and origin included",
-    tags: ["rosewood", "sculpture", "handcarved", "spiritual", "ancestral", "art"],
-  },
-}
+// Helpers
+const slugify = (label: string) => label.toLowerCase().replace(/\s+/g, "-")
 
 // Mock related products
-const relatedProducts = [
-  {
-    id: 3,
-    name: "Traditional Cotton Lamba",
-    artisan: "Hanta Rasolofo",
-    price: 45000,
-    originalPrice: undefined,
-    image: "/placeholder.svg?height=300&width=400",
-    rating: 4.6,
-    reviews: 18,
-    category: "Textiles",
-    isNew: false,
-    isFeatured: false,
-    isPopular: true,
-    isLimited: false,
-    discount: undefined,
-    culturalSignificance: "Traditional everyday garment worn by Malagasy people",
-    materials: ["Cotton", "Natural dyes"],
-  },
-  {
-    id: 4,
-    name: "Embroidered Ceremonial Shawl",
-    artisan: "Voahangy Rakoto",
-    price: 120000,
-    originalPrice: 135000,
-    image: "/placeholder.svg?height=300&width=400",
-    rating: 4.9,
-    reviews: 12,
-    category: "Textiles",
-    isNew: true,
-    isFeatured: false,
-    isPopular: false,
-    isLimited: false,
-    discount: 11,
-    culturalSignificance: "Luxurious ceremonial shawl for special occasions",
-    materials: ["Silk", "Gold thread"],
-  },
-  {
-    id: 5,
-    name: "Woven Table Runner",
-    artisan: "Lalao Andriamihaja",
-    price: 35000,
-    originalPrice: undefined,
-    image: "/placeholder.svg?height=300&width=400",
-    rating: 4.5,
-    reviews: 8,
-    category: "Textiles",
-    isNew: false,
-    isFeatured: false,
-    isPopular: false,
-    isLimited: false,
-    discount: undefined,
-    culturalSignificance: "Decorative table runner with traditional patterns",
-    materials: ["Cotton", "Natural fibers"],
-  },
-  {
-    id: 6,
-    name: "Silk Ceremonial Scarf",
-    artisan: "Ravo Rasoamampionona",
-    price: 65000,
-    originalPrice: undefined,
-    image: "/placeholder.svg?height=300&width=400",
-    rating: 4.7,
-    reviews: 15,
-    category: "Textiles",
-    isNew: false,
-    isFeatured: true,
-    isPopular: false,
-    isLimited: false,
-    discount: undefined,
-    culturalSignificance: "Elegant silk scarf for formal ceremonies",
-    materials: ["Wild silk", "Natural dyes"],
-  },
-]
+const relatedFromCentral = (categorySlug: string, excludeId: number) =>
+  PRODUCTS.filter((p) => slugify(p.category) === categorySlug && p.id !== excludeId).slice(0, 4).map((p) => ({
+    id: p.id,
+    name: p.name,
+    artisan: p.artisan.name,
+    price: p.price,
+    originalPrice: p.originalPrice,
+    image: p.images[0] || "/placeholder.svg?height=300&width=400",
+    rating: p.rating,
+    reviews: p.reviews,
+    category: p.category,
+    isNew: p.isNew,
+    isFeatured: p.isFeatured,
+    isPopular: (p.reviews || 0) > 25,
+    isLimited: !p.inStock,
+    discount: p.originalPrice ? Math.max(0, Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)) : undefined,
+    culturalSignificance: undefined,
+    materials: p.materials,
+  }))
 
 // Mock reviews
 const reviews = [
@@ -280,7 +116,50 @@ export default function ProductDetailPage() {
   const [isFavorited, setIsFavorited] = useState(false)
   const [selectedTab, setSelectedTab] = useState("description")
 
-const product = productData[Number(productId) as keyof typeof productData]
+const productSource = PRODUCTS.find((p) => p.id === Number(productId))
+const artisan = productSource ? ARTISANS.find((a) => a.name === productSource.artisan.name && a.location === productSource.artisan.location) : undefined
+const product = productSource
+  ? {
+      id: productSource.id,
+      name: productSource.name,
+      artisan: {
+        name: productSource.artisan.name,
+        avatar: artisan?.avatar,
+        location: productSource.artisan.location,
+        rating: artisan?.rating ?? productSource.rating,
+        totalProducts: artisan?.productsCount ?? 0,
+        yearsExperience: artisan?.yearsExperience ?? 0,
+        verified: (artisan?.featured ?? false) || (artisan?.reviews ?? 0) > 50,
+      },
+      price: productSource.price,
+      originalPrice: productSource.originalPrice,
+      discount: productSource.originalPrice
+        ? Math.max(0, Math.round(((productSource.originalPrice - productSource.price) / productSource.originalPrice) * 100))
+        : undefined,
+      images: productSource.images.length > 0 ? productSource.images : ["/placeholder.svg?height=600&width=600"],
+      rating: productSource.rating,
+      reviews: productSource.reviews,
+      category: productSource.category,
+      subcategory: undefined as string | undefined,
+      isNew: productSource.isNew ?? false,
+      isFeatured: productSource.isFeatured ?? false,
+      isPopular: (productSource.reviews || 0) > 25,
+      isLimited: !productSource.inStock,
+      inStock: productSource.inStock,
+      stockQuantity: productSource.inStock ? 3 : 0,
+      materials: productSource.materials,
+      dimensions: undefined as string | undefined,
+      weight: undefined as string | undefined,
+      description: undefined as string | undefined,
+      culturalSignificance: undefined as string | undefined,
+      craftingProcess: undefined as string | undefined,
+      careInstructions: ["Handle with care", "Keep away from moisture"],
+      shippingInfo: { domestic: "3-5 business days", international: "7-14 business days", freeShippingThreshold: 100000 },
+      returnPolicy: "30-day return policy for unused items",
+      authenticity: "Certificate of authenticity included",
+      tags: [],
+    }
+  : undefined as any
 
   useEffect(() => {
     if (!product) {
@@ -856,7 +735,7 @@ const product = productData[Number(productId) as keyof typeof productData]
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {relatedProducts.map((relatedProduct) => (
+              {relatedFromCentral(slugify(product.category), product.id).map((relatedProduct) => (
                 <ProductCard key={relatedProduct.id} product={relatedProduct} />
               ))}
             </div>

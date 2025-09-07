@@ -36,7 +36,7 @@ export function MobileNavigation() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:hidden">
-      <div className="grid grid-cols-5 gap-1 p-2">
+      <div className="grid grid-cols-4 gap-1 p-2">
         {navigationItems.map((item) => {
           const isActive = pathname === item.href
           const Icon = item.icon
@@ -55,7 +55,9 @@ export function MobileNavigation() {
               <div className="relative">
                 <Icon className="h-5 w-5" />
                 {item.badge && (
-                  <Badge className="absolute -top-2 -right-2 h-4 w-4 rounded-full p-0 text-xs">{item.badge}</Badge>
+                  <Badge className="absolute -top-2 -right-2 flex h-4 min-w-[18px] items-center justify-center rounded-full p-0 text-[10px] leading-none">
+                    {item.badge}
+                  </Badge>
                 )}
               </div>
               <span className="text-xs font-medium">{item.name}</span>

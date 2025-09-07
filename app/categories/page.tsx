@@ -13,159 +13,63 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { formatPrice } from "@/lib/utils"
+import { PRODUCTS } from "@/lib/data/products"
 import { useRouter } from "next/navigation"
 
-// Mock data for categories and products
-const categories = [
-  {
-    id: 1,
-    name: "Textiles",
-    slug: "textiles",
-    count: 156,
-    image: "/placeholder.svg?height=300&width=400",
-    description: "Traditional fabrics, clothing, and woven goods",
-    featured: true,
-  },
-  {
-    id: 2,
-    name: "Wood Carving",
-    slug: "wood-carving",
-    count: 89,
-    image: "/placeholder.svg?height=300&width=400",
-    description: "Handcrafted wooden sculptures and decorative items",
-    featured: true,
-  },
-  {
-    id: 3,
-    name: "Jewelry",
-    slug: "jewelry",
-    count: 124,
-    image: "/placeholder.svg?height=300&width=400",
-    description: "Traditional and contemporary jewelry pieces",
-    featured: false,
-  },
-  {
-    id: 4,
-    name: "Basketry",
-    slug: "basketry",
-    count: 67,
-    image: "/placeholder.svg?height=300&width=400",
-    description: "Woven baskets and storage solutions",
-    featured: false,
-  },
-  {
-    id: 5,
-    name: "Pottery",
-    slug: "pottery",
-    count: 43,
-    image: "/placeholder.svg?height=300&width=400",
-    description: "Ceramic vessels and decorative pottery",
-    featured: false,
-  },
-  {
-    id: 6,
-    name: "Metalwork",
-    slug: "metalwork",
-    count: 32,
-    image: "/placeholder.svg?height=300&width=400",
-    description: "Forged metal items and decorative pieces",
-    featured: false,
-  },
-]
+// Helpers to map centralized data
+const slugify = (label: string) => label.toLowerCase().replace(/\s+/g, "-")
 
-const allProducts = [
-  {
-    id: 1,
-    name: "Hand-woven Silk Lamba",
-    category: "textiles",
-    price: 85000,
-    originalPrice: 95000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Marie Razafy",
-    location: "Antananarivo",
-    rating: 4.8,
-    reviews: 24,
-    isNew: true,
-    isFeatured: false,
-    materials: ["Silk", "Natural dyes"],
-    inStock: true,
-  },
-  {
-    id: 2,
-    name: "Carved Rosewood Sculpture",
-    category: "wood-carving",
-    price: 150000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Jean Rakotomalala",
-    location: "Fianarantsoa",
-    rating: 4.9,
-    reviews: 18,
-    isNew: false,
-    isFeatured: true,
-    materials: ["Rosewood"],
-    inStock: true,
-  },
-  {
-    id: 3,
-    name: "Silver Filigree Necklace",
-    category: "jewelry",
-    price: 65000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Sophie Andriamihaja",
-    location: "Antananarivo",
-    rating: 4.7,
-    reviews: 31,
-    isNew: false,
-    isFeatured: false,
-    materials: ["Sterling Silver"],
-    inStock: true,
-  },
-  {
-    id: 4,
-    name: "Raffia Storage Basket",
-    category: "basketry",
-    price: 45000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Rasoa Raharimampionona",
-    location: "Toamasina",
-    rating: 4.6,
-    reviews: 15,
-    isNew: true,
-    isFeatured: false,
-    materials: ["Raffia Palm"],
-    inStock: false,
-  },
-  {
-    id: 5,
-    name: "Traditional Clay Pot",
-    category: "pottery",
-    price: 35000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Hery Randriamanantsoa",
-    location: "Antsirabe",
-    rating: 4.5,
-    reviews: 12,
-    isNew: false,
-    isFeatured: false,
-    materials: ["Clay", "Natural glazes"],
-    inStock: true,
-  },
-  {
-    id: 6,
-    name: "Forged Iron Candle Holder",
-    category: "metalwork",
-    price: 55000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Paul Rakotonirina",
-    location: "Antananarivo",
-    rating: 4.4,
-    reviews: 8,
-    isNew: false,
-    isFeatured: false,
-    materials: ["Iron"],
-    inStock: true,
-  },
-]
+const allProducts = PRODUCTS.map((p) => ({
+  id: p.id,
+  name: p.name,
+  category: slugify(p.category),
+  price: p.price,
+  originalPrice: p.originalPrice,
+  image: p.images[0] || "/placeholder.svg?height=300&width=400",
+  artisan: p.artisan.name,
+  location: p.artisan.location,
+  rating: p.rating,
+  reviews: p.reviews,
+  isNew: p.isNew,
+  isFeatured: p.isFeatured,
+  materials: p.materials,
+  inStock: p.inStock,
+}))
+
+const categories = Array.from(
+  allProducts.reduce((map, p) => {
+    const key = p.category
+    const name = key
+      .split("-")
+      .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+      .join(" ")
+    if (!map.has(key)) {
+      map.set(key, {
+        id: map.size + 1,
+        name,
+        slug: key,
+        count: 0,
+        image: p.image,
+        description:
+          key === "textiles"
+            ? "Traditional fabrics, clothing, and woven goods"
+            : key === "wood-carving"
+            ? "Handcrafted wooden sculptures and decorative items"
+            : key === "jewelry"
+            ? "Traditional and contemporary jewelry pieces"
+            : key === "basketry"
+            ? "Woven baskets and storage solutions"
+            : key === "pottery"
+            ? "Ceramic vessels and decorative pottery"
+            : "Forged metal items and decorative pieces",
+        featured: ["textiles", "wood-carving"].includes(key),
+      })
+    }
+    const item = map.get(key) as any
+    item.count += 1
+    return map
+  }, new Map<string, any>())
+).map(([, v]) => v)
 
 export default function CategoriesPage() {
   const router = useRouter()
@@ -388,7 +292,7 @@ export default function CategoriesPage() {
                         <Checkbox
                           id="in-stock"
                           checked={showInStockOnly}
-                          // onCheckedChange={setShowInStockOnly}
+                          onCheckedChange={() => setShowInStockOnly((v) => !v)}
                         />
                         <label htmlFor="in-stock" className="text-sm">
                           In stock only

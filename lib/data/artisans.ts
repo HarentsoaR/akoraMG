@@ -68,6 +68,32 @@ export const ARTISANS: ArtisanData[] = [
     acceptsCustomOrders: true,
     bio: "Basketry specialist using sustainable raffia with regional patterns.",
   },
+  {
+    id: 5,
+    name: "Hery Randriamanantsoa",
+    avatar: "/placeholder.svg?height=80&width=80",
+    location: "Antsirabe",
+    rating: 4.5,
+    reviews: 52,
+    crafts: ["Pottery", "Ceramics"],
+    productsCount: 9,
+    yearsExperience: 8,
+    acceptsCustomOrders: false,
+    bio: "Potter crafting traditional and contemporary clay vessels with natural glazes.",
+  },
+  {
+    id: 6,
+    name: "Paul Rakotonirina",
+    avatar: "/placeholder.svg?height=80&width=80",
+    location: "Antananarivo",
+    rating: 4.4,
+    reviews: 28,
+    crafts: ["Metalwork", "Blacksmithing"],
+    productsCount: 7,
+    yearsExperience: 12,
+    acceptsCustomOrders: true,
+    bio: "Blacksmith forging functional and decorative metal items using traditional methods.",
+  },
 ]
 
 export type Artisan = ArtisanData

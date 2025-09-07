@@ -84,19 +84,19 @@ export function Header() {
             {/* Notifications */}
             <Button variant="ghost" size="sm" className="relative">
               <Bell className="h-5 w-5" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs">3</Badge>
+              <Badge className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full p-0 text-[10px] leading-none">3</Badge>
             </Button>
 
             {/* Wishlist */}
             <Button variant="ghost" size="sm" className="relative">
               <Heart className="h-5 w-5" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs">2</Badge>
+              <Badge className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full p-0 text-[10px] leading-none">2</Badge>
             </Button>
 
             {/* Cart */}
             <Button variant="ghost" size="sm" className="relative">
               <ShoppingCart className="h-5 w-5" />
-              <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs">1</Badge>
+              <Badge className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full p-0 text-[10px] leading-none">1</Badge>
             </Button>
 
             {/* User Menu */}

@@ -14,6 +14,8 @@ export type ProductData = {
   inStock: boolean
 }
 
+import { ARTISANS } from "./artisans"
+
 export const PRODUCTS: ProductData[] = [
   {
     id: 1,
@@ -93,20 +95,23 @@ export const PRODUCTS: ProductData[] = [
     inStock: true,
   },
   // Extra items for pagination/demo
-  ...Array.from({ length: 12 }).map((_, i) => ({
-    id: 7 + i,
-    name: `Artisan Craft ${i + 1}`,
-    category: (["Textiles", "Wood Carving", "Jewelry", "Basketry", "Pottery", "Metalwork"] as const)[i % 6],
-    price: 30000 + (i % 12) * 5000,
-    images: ["/placeholder.svg?height=300&width=400"],
-    artisan: { name: ["Rasoa", "Hery", "Jean", "Marie", "Voahangy", "Paul"][i % 6], location: ["Antananarivo", "Fianarantsoa", "Toamasina", "Antsirabe"][i % 4] },
-    rating: 4 + ((i % 10) / 10),
-    reviews: 5 + (i % 50),
-    isNew: i % 4 === 0,
-    isFeatured: i % 5 === 0,
-    materials: ["Natural dyes", "Silk", "Cotton", "Clay", "Iron", "Rosewood"].slice(0, 1 + (i % 3)),
-    inStock: i % 7 !== 0,
-  })),
+  ...Array.from({ length: 12 }).map((_, i) => {
+    const artisan = ARTISANS[i % ARTISANS.length]
+    return {
+      id: 7 + i,
+      name: `Artisan Craft ${i + 1}`,
+      category: (["Textiles", "Wood Carving", "Jewelry", "Basketry", "Pottery", "Metalwork"] as const)[i % 6],
+      price: 30000 + (i % 12) * 5000,
+      images: ["/placeholder.svg?height=300&width=400"],
+      artisan: { name: artisan.name, location: artisan.location },
+      rating: 4 + ((i % 10) / 10),
+      reviews: 5 + (i % 50),
+      isNew: i % 4 === 0,
+      isFeatured: i % 5 === 0,
+      materials: ["Natural dyes", "Silk", "Cotton", "Clay", "Iron", "Rosewood"].slice(0, 1 + (i % 3)),
+      inStock: i % 7 !== 0,
+    }
+  }),
 ]
 
 

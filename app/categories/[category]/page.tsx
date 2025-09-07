@@ -21,8 +21,9 @@ import {
 import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { formatPrice } from "@/lib/utils"
+import { PRODUCTS } from "@/lib/data/products"
 
-// Mock data - same as before but filtered by category
+// Category meta
 const categoryData = {
   textiles: {
     name: "Textiles",
@@ -71,74 +72,25 @@ const categoryData = {
   },
 }
 
-const allProducts = [
-  {
-    id: 1,
-    name: "Hand-woven Silk Lamba",
-    category: "textiles",
-    price: 85000,
-    originalPrice: 95000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Marie Razafy",
-    location: "Antananarivo",
-    rating: 4.8,
-    reviews: 24,
-    isNew: true,
-    isFeatured: false,
-    materials: ["Silk", "Natural dyes"],
-    inStock: true,
-    description: "Exquisite traditional Malagasy ceremonial garment woven with pure silk threads",
-  },
-  {
-    id: 2,
-    name: "Traditional Cotton Lamba",
-    category: "textiles",
-    price: 45000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Hanta Rasolofo",
-    location: "Fianarantsoa",
-    rating: 4.6,
-    reviews: 18,
-    isNew: false,
-    isFeatured: true,
-    materials: ["Cotton", "Natural dyes"],
-    inStock: true,
-    description: "Classic everyday lamba made from locally grown cotton with traditional patterns",
-  },
-  {
-    id: 3,
-    name: "Embroidered Ceremonial Shawl",
-    category: "textiles",
-    price: 120000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Voahangy Rakoto",
-    location: "Antananarivo",
-    rating: 4.9,
-    reviews: 12,
-    isNew: false,
-    isFeatured: false,
-    materials: ["Silk", "Gold thread"],
-    inStock: true,
-    description: "Luxurious ceremonial shawl with intricate gold thread embroidery",
-  },
-  // Add more products for other categories...
-  {
-    id: 4,
-    name: "Carved Rosewood Sculpture",
-    category: "wood-carving",
-    price: 150000,
-    image: "/placeholder.svg?height=300&width=400",
-    artisan: "Jean Rakotomalala",
-    location: "Fianarantsoa",
-    rating: 4.9,
-    reviews: 18,
-    isNew: false,
-    isFeatured: true,
-    materials: ["Rosewood"],
-    inStock: true,
-    description: "Masterfully carved rosewood sculpture depicting traditional Malagasy motifs",
-  },
-]
+const slugify = (label: string) => label.toLowerCase().replace(/\s+/g, "-")
+
+const allProducts = PRODUCTS.map((p) => ({
+  id: p.id,
+  name: p.name,
+  category: slugify(p.category),
+  price: p.price,
+  originalPrice: p.originalPrice,
+  image: p.images[0] || "/placeholder.svg?height=300&width=400",
+  artisan: p.artisan.name,
+  location: p.artisan.location,
+  rating: p.rating,
+  reviews: p.reviews,
+  isNew: p.isNew,
+  isFeatured: p.isFeatured,
+  materials: p.materials,
+  inStock: p.inStock,
+  description: undefined as string | undefined,
+}))
 
 export default function CategoryPage() {
   const params = useParams()
@@ -365,7 +317,7 @@ export default function CategoryPage() {
 
                       {/* Stock Filter */}
                       <div className="flex items-center space-x-2">
-                        {/* <Checkbox id="in-stock" checked={showInStockOnly} onCheckedChange={setShowInStockOnly} /> */}
+                        <Checkbox id="in-stock" checked={showInStockOnly} onCheckedChange={() => setShowInStockOnly((v) => !v)} />
                         <label htmlFor="in-stock" className="text-sm">
                           In stock only
                         </label>
@@ -493,7 +445,9 @@ export default function CategoryPage() {
                               </div>
                             </div>
 
-                            <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+                            {product.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
+                            )}
 
                             <div className="flex flex-wrap gap-1">
                               {product.materials.map((material: string) => (
