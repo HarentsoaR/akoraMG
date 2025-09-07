@@ -18,6 +18,7 @@ import {
 import { useRouter } from "next/navigation"
 import { useCart } from "@/components/providers/cart-provider"
 import { useWishlist } from "@/components/providers/wishlist-provider"
+import { useAuth } from "@/components/providers/auth-provider"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -25,6 +26,7 @@ export function Header() {
   const router = useRouter()
   const { totalItems } = useCart()
   const { count: wishlistCount } = useWishlist()
+  const { user, logout } = useAuth()
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -112,24 +114,39 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="/placeholder.svg" alt="User" />
-                    <AvatarFallback>RA</AvatarFallback>
+                    <AvatarImage src={user?.avatar || "/placeholder.svg"} alt={user?.name || "User"} />
+                    <AvatarFallback>
+                      {(user?.name || user?.email || "GU")
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">Rasoa Andry</p>
-                    <p className="text-xs leading-none text-muted-foreground">rasoa@fivoarana.mg</p>
+                    <p className="text-sm font-medium leading-none">{user?.name || "Not signed in"}</p>
+                    {user?.email && (
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    )}
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push("/dashboard")}>Dashboard</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push("/profile")}>Profile</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push("/orders")}>Orders</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Log out</DropdownMenuItem>
+                {user ? (
+                  <>
+                    <DropdownMenuItem onClick={() => router.push("/dashboard")}>Dashboard</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push("/profile")}>Profile</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push("/orders")}>Orders</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => logout()}>Log out</DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem onClick={() => router.push("/auth/login")}>Sign in</DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

@@ -10,11 +10,13 @@ import { Minus, Plus, Trash2 } from "lucide-react"
 import { formatPrice } from "@/lib/utils"
 import { useOrders } from "@/components/providers/orders-provider"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/components/providers/auth-provider"
 
 export default function CartPage() {
   const { items, subtotal, totalItems, updateQuantity, removeItem, clearCart } = useCart()
   const { placeOrder } = useOrders()
   const router = useRouter()
+  const { user } = useAuth() as any
 
   return (
     <div className="min-h-screen bg-background">
@@ -83,6 +85,7 @@ export default function CartPage() {
                     className="w-full"
                     onClick={() => {
                       if (items.length === 0) return
+                      if (!user) { router.push("/auth/login"); return }
                       const order = placeOrder(
                         items.map((i) => ({
                           productId: i.id,
@@ -92,8 +95,10 @@ export default function CartPage() {
                           quantity: i.quantity,
                         }))
                       )
-                      clearCart()
-                      router.push(`/orders`)
+                      Promise.resolve(order).then(() => {
+                        clearCart()
+                        router.push(`/orders`)
+                      })
                     }}
                   >
                     Checkout

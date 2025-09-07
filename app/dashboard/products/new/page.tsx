@@ -15,10 +15,12 @@ import { Header } from "@/components/layout/header"
 import { formatPrice } from "@/lib/utils"
 import { useRouter } from "next/navigation"
 import { useProducts } from "@/components/providers/products-provider"
+import { useAuth } from "@/components/providers/auth-provider"
 
 export default function NewProductPage() {
   const router = useRouter()
   const { addProduct } = useProducts()
+  const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
   const [aiEnabled, setAiEnabled] = useState(false)
   const [images, setImages] = useState<string[]>([])
@@ -337,15 +339,15 @@ export default function NewProductPage() {
                 </Button>
                 <Button
                   className="flex-1"
-                  onClick={() => {
-                    const id = addProduct({
+                  onClick={async () => {
+                    const id = await addProduct({
                       name: formData.name || "Untitled",
                       category: (formData.category as any) || "Textiles",
                       price: Number(formData.price || 0),
                       images,
                       materials: formData.materials ? formData.materials.split(",").map((s) => s.trim()).filter(Boolean) : [],
                       inStock: Number(formData.quantity || 0) > 0,
-                      createdBy: "1",
+                      createdBy: user?.id,
                     })
                     router.push(`/products/${id}`)
                   }}
