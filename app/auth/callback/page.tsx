@@ -6,6 +6,22 @@ import { supabase } from "@/lib/supabase/client"
 import { UserService } from "@/lib/services/user-service"
 import { Loader2, CheckCircle, XCircle } from "lucide-react"
 
+// Helper function to get the appropriate redirect URL based on environment
+const getRedirectUrl = () => {
+  // Check if we're in production (deployed on Netlify)
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+    // If we're on the production domain, redirect to production
+    if (hostname === 'akoramg.netlify.app' || hostname === 'fivoarana.netlify.app') {
+      return 'https://akoramg.netlify.app/'
+    }
+    // For localhost or any other domain, redirect to home
+    return '/'
+  }
+  // Fallback for SSR
+  return '/'
+}
+
 export default function AuthCallback() {
   const router = useRouter()
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
@@ -23,14 +39,28 @@ export default function AuthCallback() {
           console.error("Session error:", sessionError)
           setStatus("error")
           setMessage("Authentication failed. Please try again.")
-          setTimeout(() => router.replace("/auth/login"), 3000)
+          setTimeout(() => {
+            const redirectUrl = getRedirectUrl()
+            if (redirectUrl.startsWith('http')) {
+              window.location.href = redirectUrl + 'auth/login'
+            } else {
+              router.replace("/auth/login")
+            }
+          }, 3000)
           return
         }
 
         if (!session?.user) {
           setStatus("error")
           setMessage("No user found. Redirecting to login...")
-          setTimeout(() => router.replace("/auth/login"), 2000)
+          setTimeout(() => {
+            const redirectUrl = getRedirectUrl()
+            if (redirectUrl.startsWith('http')) {
+              window.location.href = redirectUrl + 'auth/login'
+            } else {
+              router.replace("/auth/login")
+            }
+          }, 2000)
           return
         }
 
@@ -45,18 +75,39 @@ export default function AuthCallback() {
           
           // Small delay to show success message
           setTimeout(() => {
-            router.replace("/")
+            const redirectUrl = getRedirectUrl()
+            if (redirectUrl.startsWith('http')) {
+              // For external URLs, use window.location
+              window.location.href = redirectUrl
+            } else {
+              // For internal routes, use Next.js router
+              router.replace(redirectUrl)
+            }
           }, 1500)
         } else {
           setStatus("error")
           setMessage("Failed to set up profile. Please try again.")
-          setTimeout(() => router.replace("/auth/login"), 3000)
+          setTimeout(() => {
+            const redirectUrl = getRedirectUrl()
+            if (redirectUrl.startsWith('http')) {
+              window.location.href = redirectUrl + 'auth/login'
+            } else {
+              router.replace("/auth/login")
+            }
+          }, 3000)
         }
       } catch (error) {
         console.error("Auth callback error:", error)
         setStatus("error")
         setMessage("Something went wrong. Please try again.")
-        setTimeout(() => router.replace("/auth/login"), 3000)
+        setTimeout(() => {
+          const redirectUrl = getRedirectUrl()
+          if (redirectUrl.startsWith('http')) {
+            window.location.href = redirectUrl + 'auth/login'
+          } else {
+            router.replace("/auth/login")
+          }
+        }, 3000)
       }
     }
 
