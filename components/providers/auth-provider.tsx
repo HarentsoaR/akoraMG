@@ -93,6 +93,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    // If a magic link lands on any path with tokens in the hash,
+    // funnel it to our dedicated callback route.
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash
+      const hasAuthHash = hash && (hash.includes('access_token') || hash.includes('error='))
+      if (hasAuthHash && window.location.pathname !== '/auth/callback') {
+        const base = (process.env.NEXT_PUBLIC_SITE_URL || window.location.origin).replace(/\/$/, '')
+        window.location.replace(`${base}/auth/callback${hash}`)
+        return
+      }
+    }
+
     const init = async () => {
       try {
         const { data } = await supabase.auth.getUser()
@@ -128,6 +140,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .replace(/\/$/, '')
       const redirectUrl = `${base}/auth/callback`
       
+      console.log('[Auth] Magic link redirect:', redirectUrl)
       const { error } = await supabase.auth.signInWithOtp({ 
         email, 
         options: { emailRedirectTo: redirectUrl } 
@@ -146,6 +159,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .replace(/\/$/, '')
       const redirectUrl = `${base}/auth/callback`
       
+      console.log('[Auth] OAuth redirect:', redirectUrl)
       const { error } = await supabase.auth.signInWithOAuth({ 
         provider: "google", 
         options: { redirectTo: redirectUrl } 
