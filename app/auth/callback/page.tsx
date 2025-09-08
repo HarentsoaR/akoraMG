@@ -6,19 +6,13 @@ import { supabase } from "@/lib/supabase/client"
 import { UserService } from "@/lib/services/user-service"
 import { Loader2, CheckCircle, XCircle } from "lucide-react"
 
-// Helper function to get the appropriate redirect URL based on environment
+// Helper function to get the post-login redirect URL
 const getRedirectUrl = () => {
-  // Check if we're in production (deployed on Netlify)
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname
-    // If we're on the production domain, redirect to production
-    if (hostname === 'akoramg.netlify.app' || hostname === 'fivoarana.netlify.app') {
-      return 'https://akoramg.netlify.app/'
-    }
-    // For localhost or any other domain, redirect to home
-    return '/'
-  }
-  // Fallback for SSR
+  // If a public site URL is configured, use it (ensures emails always go to prod)
+  const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+  if (fromEnv) return `${fromEnv}/`
+  // Fallback to current origin when env not set
+  if (typeof window !== 'undefined') return '/'
   return '/'
 }
 
@@ -211,5 +205,4 @@ export default function AuthCallback() {
     </div>
   )
 }
-
 

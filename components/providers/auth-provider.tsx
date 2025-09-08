@@ -123,10 +123,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithEmail: AuthContextType["signInWithEmail"] = async (email) => {
     try {
-      // Use environment-aware redirect URL
-      const redirectUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}/auth/callback`
-        : '/auth/callback'
+      // Prefer configured site URL for magic link redirects
+      const base = (process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : ''))
+        .replace(/\/$/, '')
+      const redirectUrl = `${base}/auth/callback`
       
       const { error } = await supabase.auth.signInWithOtp({ 
         email, 
@@ -141,10 +141,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle: AuthContextType["signInWithGoogle"] = async () => {
     try {
-      // Use environment-aware redirect URL
-      const redirectUrl = typeof window !== 'undefined' 
-        ? `${window.location.origin}/auth/callback`
-        : '/auth/callback'
+      // Prefer configured site URL for OAuth redirects
+      const base = (process.env.NEXT_PUBLIC_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : ''))
+        .replace(/\/$/, '')
+      const redirectUrl = `${base}/auth/callback`
       
       const { error } = await supabase.auth.signInWithOAuth({ 
         provider: "google", 
