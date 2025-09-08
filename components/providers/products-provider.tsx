@@ -96,8 +96,16 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
 
         if (error) {
           console.error("Database error:", error)
+          console.error("Error details:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code
+          })
           throw error
         }
+        
+        console.log("Fetched products from database:", data?.length || 0, "products")
         
         // If we have products, try to get artisan data for each
         const mapped: ProductExt[] = []
@@ -120,8 +128,8 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
               .single()
             
             if (artisanData) {
-              artisanName = artisanData.users?.name || ""
-              artisanLocation = artisanData.location || ""
+              artisanName = (artisanData as any).users?.name || ""
+              artisanLocation = (artisanData as any).location || ""
             }
           } catch (artisanError) {
             // If artisan profile doesn't exist, use fallback
@@ -150,6 +158,8 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
           })
         }
         
+        console.log("Mapped products:", mapped.length, "products")
+        console.log("Sample mapped product:", mapped[0])
         setRemoteProducts(mapped)
       } catch (e) {
         console.error("Fetch products failed", e)

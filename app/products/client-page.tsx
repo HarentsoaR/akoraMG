@@ -19,6 +19,7 @@ import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { ProductCard } from "@/components/products/product-card"
 import { formatPrice } from "@/lib/utils"
 import { useProducts } from "@/components/providers/products-provider"
+import { DebugProducts } from "@/components/debug-products"
 
 type Product = {
   id: number
@@ -136,7 +137,7 @@ export default function ProductsPageClient() {
   const filteredProducts = useMemo(() => {
     let items = allProducts.filter((p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.artisan.toLowerCase().includes(searchQuery.toLowerCase())
+      p.artisan.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
     if (selectedCategory !== "All") {
@@ -305,6 +306,7 @@ export default function ProductsPageClient() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
+      <DebugProducts />
 
       <main className="pb-20 md:pb-8">
         {/* Hero/Search */}
