@@ -16,6 +16,8 @@ export function DebugProducts() {
         <div>Products: {products.length}</div>
         <div>Supabase URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Not set'}</div>
         <div>Supabase Key: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set'}</div>
+        <div>Environment: {process.env.NODE_ENV}</div>
+        <div>Site URL: {process.env.NEXT_PUBLIC_SITE_URL || 'Not set'}</div>
         {products.length > 0 && (
           <div className="mt-2">
             <div className="font-semibold">First Product:</div>

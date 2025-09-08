@@ -66,6 +66,13 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
   // Fetch products from Supabase with artisan data
   useEffect(() => {
     const fetchProducts = async () => {
+      console.log("Environment check:", {
+        NODE_ENV: process.env.NODE_ENV,
+        SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Not set',
+        SUPABASE_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set',
+        SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'Not set'
+      })
+      
       try {
         // First, try a simple query to check if products table exists
         const { data, error } = await supabase
@@ -163,6 +170,13 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
         setRemoteProducts(mapped)
       } catch (e) {
         console.error("Fetch products failed", e)
+        console.error("Error details:", e)
+        
+        // Check if it's a configuration issue
+        if (e instanceof Error && e.message.includes('Invalid API key')) {
+          console.error("❌ Supabase API key is invalid or not set in production")
+        }
+        
         // Fallback to local data if database fails
         setRemoteProducts([])
       } finally {
