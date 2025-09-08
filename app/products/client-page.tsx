@@ -38,7 +38,6 @@ type Product = {
   inStock: boolean
 }
 
-let allProducts: Product[] = []
 
 // Categories with slugs + meta
 const categoryDefs = [
@@ -99,22 +98,26 @@ const categories = ["All", ...categoryDefs.map((c) => c.label)]
 
 export default function ProductsPageClient() {
   const { products } = useProducts()
-  allProducts = products.map((p) => ({
-    id: p.id,
-    name: p.name,
-    category: p.category,
-    price: p.price,
-    originalPrice: p.originalPrice,
-    image: p.images[0] || "/placeholder.svg?height=300&width=400",
-    artisan: p.artisan.name,
-    location: p.artisan.location,
-    rating: p.rating,
-    reviews: p.reviews,
-    isNew: p.isNew,
-    isFeatured: p.isFeatured,
-    materials: p.materials,
-    inStock: p.inStock,
-  }))
+  const allProducts = useMemo<Product[]>(
+    () =>
+      products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category,
+        price: p.price,
+        originalPrice: p.originalPrice,
+        image: p.images[0] || "/placeholder.svg?height=300&width=400",
+        artisan: p.artisan.name,
+        location: p.artisan.location,
+        rating: p.rating,
+        reviews: p.reviews,
+        isNew: p.isNew,
+        isFeatured: p.isFeatured,
+        materials: p.materials,
+        inStock: p.inStock,
+      })),
+    [products]
+  )
   const searchParams = useSearchParams()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
@@ -132,12 +135,12 @@ export default function ProductsPageClient() {
 
   const allMaterials = useMemo(() => {
     return Array.from(new Set(allProducts.flatMap((p) => p.materials)))
-  }, [])
+  }, [allProducts])
 
   const filteredProducts = useMemo(() => {
     let items = allProducts.filter((p) =>
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.artisan.name.toLowerCase().includes(searchQuery.toLowerCase())
+      p.artisan.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
     if (selectedCategory !== "All") {
@@ -172,7 +175,7 @@ export default function ProductsPageClient() {
     }
 
     return items
-  }, [searchQuery, selectedCategory, priceRange, selectedMaterials, showInStockOnly, sortBy])
+  }, [allProducts, searchQuery, selectedCategory, priceRange, selectedMaterials, showInStockOnly, sortBy])
 
   // Reset to first page when filters change
   useEffect(() => {
@@ -217,14 +220,14 @@ export default function ProductsPageClient() {
       map.set(p.category, (map.get(p.category) || 0) + 1)
     }
     return map
-  }, [])
+  }, [allProducts])
 
   const selectedCategoryMaterials = useMemo(() => {
     if (selectedCategory === "All") return [] as string[]
     const set = new Set<string>()
     allProducts.filter((p) => p.category === selectedCategory).forEach((p) => p.materials.forEach((m) => set.add(m)))
     return Array.from(set)
-  }, [selectedCategory])
+  }, [selectedCategory, allProducts])
 
   const hasActiveFilters =
     searchQuery.trim().length > 0 ||
@@ -584,4 +587,3 @@ export default function ProductsPageClient() {
     </div>
   )
 }
-
