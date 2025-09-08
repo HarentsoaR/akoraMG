@@ -32,11 +32,11 @@ export default function AuthCallback() {
       try {
         setMessage("Processing authentication...")
         
-        // Get the current session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+        // Handle the auth callback by getting the session from the URL
+        const { data, error } = await supabase.auth.getSession()
         
-        if (sessionError) {
-          console.error("Session error:", sessionError)
+        if (error) {
+          console.error("Session error:", error)
           setStatus("error")
           setMessage("Authentication failed. Please try again.")
           setTimeout(() => {
@@ -50,20 +50,89 @@ export default function AuthCallback() {
           return
         }
 
-        if (!session?.user) {
-          setStatus("error")
-          setMessage("No user found. Redirecting to login...")
-          setTimeout(() => {
-            const redirectUrl = getRedirectUrl()
-            if (redirectUrl.startsWith('http')) {
-              window.location.href = redirectUrl + 'auth/login'
-            } else {
-              router.replace("/auth/login")
-            }
-          }, 2000)
-          return
-        }
+        const { session } = data
 
+        // If no session, try to get it from the URL hash
+        if (!session?.user) {
+          // Check if we have auth data in the URL hash
+          const hashParams = new URLSearchParams(window.location.hash.substring(1))
+          const accessToken = hashParams.get('access_token')
+          const refreshToken = hashParams.get('refresh_token')
+          
+          if (accessToken) {
+            // Set the session manually
+            const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || ''
+            })
+            
+            if (sessionError || !sessionData.session?.user) {
+              setStatus("error")
+              setMessage("Invalid session. Redirecting to login...")
+              setTimeout(() => {
+                const redirectUrl = getRedirectUrl()
+                if (redirectUrl.startsWith('http')) {
+                  window.location.href = redirectUrl + 'auth/login'
+                } else {
+                  router.replace("/auth/login")
+                }
+              }, 2000)
+              return
+            }
+            
+            // Use the new session
+            const { session: newSession } = sessionData
+            if (!newSession?.user) {
+              setStatus("error")
+              setMessage("No user found. Redirecting to login...")
+              setTimeout(() => {
+                const redirectUrl = getRedirectUrl()
+                if (redirectUrl.startsWith('http')) {
+                  window.location.href = redirectUrl + 'auth/login'
+                } else {
+                  router.replace("/auth/login")
+                }
+              }, 2000)
+              return
+            }
+            
+            // Continue with the new session
+            await processUserSession(newSession)
+            return
+          } else {
+            setStatus("error")
+            setMessage("No user found. Redirecting to login...")
+            setTimeout(() => {
+              const redirectUrl = getRedirectUrl()
+              if (redirectUrl.startsWith('http')) {
+                window.location.href = redirectUrl + 'auth/login'
+              } else {
+                router.replace("/auth/login")
+              }
+            }, 2000)
+            return
+          }
+        }
+        
+        // Process the session
+        await processUserSession(session)
+      } catch (error) {
+        console.error("Auth callback error:", error)
+        setStatus("error")
+        setMessage("Something went wrong. Please try again.")
+        setTimeout(() => {
+          const redirectUrl = getRedirectUrl()
+          if (redirectUrl.startsWith('http')) {
+            window.location.href = redirectUrl + 'auth/login'
+          } else {
+            router.replace("/auth/login")
+          }
+        }, 3000)
+      }
+    }
+
+    const processUserSession = async (session: any) => {
+      try {
         setMessage("Setting up your profile...")
         
         // Sync user data with our database
@@ -97,9 +166,9 @@ export default function AuthCallback() {
           }, 3000)
         }
       } catch (error) {
-        console.error("Auth callback error:", error)
+        console.error("Profile setup error:", error)
         setStatus("error")
-        setMessage("Something went wrong. Please try again.")
+        setMessage("Failed to set up profile. Please try again.")
         setTimeout(() => {
           const redirectUrl = getRedirectUrl()
           if (redirectUrl.startsWith('http')) {

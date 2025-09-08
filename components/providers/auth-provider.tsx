@@ -123,7 +123,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithEmail: AuthContextType["signInWithEmail"] = async (email) => {
     try {
-      const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: `${window.location.origin}/auth/callback` } })
+      // Use environment-aware redirect URL
+      const redirectUrl = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback`
+        : '/auth/callback'
+      
+      const { error } = await supabase.auth.signInWithOtp({ 
+        email, 
+        options: { emailRedirectTo: redirectUrl } 
+      })
       if (error) return { error: error.message }
       return {}
     } catch (e: any) {
@@ -133,7 +141,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle: AuthContextType["signInWithGoogle"] = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/auth/callback` } })
+      // Use environment-aware redirect URL
+      const redirectUrl = typeof window !== 'undefined' 
+        ? `${window.location.origin}/auth/callback`
+        : '/auth/callback'
+      
+      const { error } = await supabase.auth.signInWithOAuth({ 
+        provider: "google", 
+        options: { redirectTo: redirectUrl } 
+      })
       if (error) return { error: error.message }
       return {}
     } catch (e: any) {
