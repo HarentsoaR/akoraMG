@@ -59,15 +59,39 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
   }, [customProducts])
 
   const products: ProductExt[] = useMemo(() => {
-    // Always show custom products first, then remote products, then fallback to PRODUCTS
-    const base = remoteProducts.length > 0 ? remoteProducts : PRODUCTS
+    // Check if Supabase is properly configured
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const isSupabaseConfigured = supabaseUrl && supabaseKey && 
+      supabaseUrl !== "your_supabase_project_url_here" && 
+      supabaseKey !== "your_supabase_anon_key_here"
+    
+    // If Supabase is configured, only use remote products (no static fallback)
+    // If not configured, use static data as fallback
+    const base = isSupabaseConfigured ? remoteProducts : PRODUCTS
     return [...customProducts, ...base]
   }, [customProducts, remoteProducts])
 
   // Fetch products from Supabase with artisan data
   useEffect(() => {
     const fetchProducts = async () => {
+      // Check if Supabase is properly configured
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      const isSupabaseConfigured = supabaseUrl && supabaseKey && 
+        supabaseUrl !== "your_supabase_project_url_here" && 
+        supabaseKey !== "your_supabase_anon_key_here"
+      
+      if (!isSupabaseConfigured) {
+        console.warn("Supabase not configured, skipping product fetch")
+        setError("Supabase not configured. Please set up your environment variables.")
+        setLoading(false)
+        return
+      }
+
       try {
+        setError(null) // Clear any previous errors
+        
         // First, try a simple query to check if products table exists
         const { data, error } = await supabase
           .from("products")
@@ -96,20 +120,28 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
           .order("created_at", { ascending: false })
 
         if (error) {
-          setError(error.message || "Failed to load products")
-          throw error
+          console.error("Supabase query error:", error)
+          setError(`Database error: ${error.message}`)
+          setRemoteProducts([])
+          return
+        }
+
+        if (!data || data.length === 0) {
+          console.log("No products found in database")
+          setRemoteProducts([])
+          return
         }
 
         // If we have products, try to get artisan data for each
         const mapped: ProductExt[] = []
         
-        for (const product of data || []) {
-          let artisanName = ""
-          let artisanLocation = ""
+        for (const product of data) {
+          let artisanName = "Unknown Artisan"
+          let artisanLocation = "Unknown Location"
           
           // Try to get artisan profile data
           try {
-            const { data: artisanData } = await supabase
+            const { data: artisanData, error: artisanError } = await supabase
               .from("artisan_profiles")
               .select(`
                 location,
@@ -120,12 +152,13 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
               .eq("id", product.owner_id)
               .single()
             
-            if (artisanData) {
-              artisanName = (artisanData as any).users?.name || ""
-              artisanLocation = (artisanData as any).location || ""
+            if (artisanData && !artisanError) {
+              artisanName = (artisanData as any).users?.name || "Unknown Artisan"
+              artisanLocation = (artisanData as any).location || "Unknown Location"
             }
           } catch (artisanError) {
-            // If artisan profile doesn't exist, use fallback silently
+            console.warn(`Could not fetch artisan data for product ${product.id}:`, artisanError)
+            // Use fallback values
           }
           
           mapped.push({
@@ -150,11 +183,11 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
           })
         }
         
+        console.log(`Successfully loaded ${mapped.length} products from Supabase`)
         setRemoteProducts(mapped)
       } catch (e) {
-        console.error("Fetch products failed", e)
-        if (!error) setError(e instanceof Error ? e.message : "Failed to load products")
-        // Fallback to local data if database fails
+        console.error("Fetch products failed:", e)
+        setError(e instanceof Error ? e.message : "Failed to load products from database")
         setRemoteProducts([])
       } finally {
         setLoading(false)
