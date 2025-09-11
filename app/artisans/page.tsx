@@ -12,46 +12,80 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { AutoSkeleton } from "@/components/ui/auto-skeleton"
 
 import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { ArtisanCard } from "@/components/artisans/artisan-card"
-import { ARTISANS } from "@/lib/data/artisans"
+import { useArtisans } from "@/components/providers/artisans-provider"
 import { useRouter } from "next/navigation"
-
-const allArtisans = ARTISANS
 
 const crafts = ["All", "Textiles", "Wood Carving", "Jewelry", "Basketry", "Pottery", "Metalwork"]
 const locations = ["All", "Antananarivo", "Fianarantsoa", "Toamasina", "Antsirabe"]
 
 export default function ArtisansPage() {
   const router = useRouter()
+  const { artisans, loading, error } = useArtisans()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCraft, setSelectedCraft] = useState("All")
   const [selectedLocation, setSelectedLocation] = useState("All")
-  const [minRating, setMinRating] = useState<[number]>([4])
+  const [minRating, setMinRating] = useState<[number]>([0]) // Start with 0 instead of 4
   const [customOrdersOnly, setCustomOrdersOnly] = useState(false)
   const [sortBy, setSortBy] = useState("featured")
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
 
+  // Debug logging
+  console.log('🎭 ArtisansPage render:', {
+    artisansCount: artisans.length,
+    loading,
+    error,
+    artisans: artisans.map(a => ({ id: a.id, name: a.name, location: a.location, crafts: a.crafts }))
+  })
+
   const pageSize = 12
 
   const filteredArtisans = useMemo(() => {
-    let items = allArtisans.filter((a) => a.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    console.log('🔍 Filtering artisans:', {
+      totalArtisans: artisans.length,
+      searchQuery,
+      selectedCraft,
+      selectedLocation,
+      minRating: minRating[0],
+      customOrdersOnly
+    })
 
+    let items = [...artisans] // Start with all artisans
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      items = items.filter((a) => 
+        a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.crafts.some(craft => craft.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        a.location.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+
+    // Apply craft filter
     if (selectedCraft !== "All") {
       items = items.filter((a) => a.crafts.includes(selectedCraft))
     }
+
+    // Apply location filter
     if (selectedLocation !== "All") {
       items = items.filter((a) => a.location === selectedLocation)
     }
+
+    // Apply rating filter (be more lenient)
     items = items.filter((a) => a.rating >= minRating[0])
+
+    // Apply custom orders filter
     if (customOrdersOnly) {
       items = items.filter((a) => a.acceptsCustomOrders)
     }
 
+    // Apply sorting
     switch (sortBy) {
       case "rating":
         items.sort((a, b) => b.rating - a.rating)
@@ -66,8 +100,9 @@ export default function ArtisansPage() {
         items.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0))
     }
 
+    console.log('✨ Filtered artisans result:', items.length, 'artisans')
     return items
-  }, [searchQuery, selectedCraft, selectedLocation, minRating, customOrdersOnly, sortBy])
+  }, [artisans, searchQuery, selectedCraft, selectedLocation, minRating, customOrdersOnly, sortBy])
 
   useEffect(() => {
     setCurrentPage(1)
@@ -81,7 +116,7 @@ export default function ArtisansPage() {
     setSearchQuery("")
     setSelectedCraft("All")
     setSelectedLocation("All")
-    setMinRating([4])
+    setMinRating([0])
     setCustomOrdersOnly(false)
     setSortBy("featured")
   }
@@ -127,7 +162,7 @@ export default function ArtisansPage() {
             <h4 className="font-medium mb-3">Minimum Rating</h4>
             <div className="px-2">
               <Slider value={minRating} onValueChange={(v) => setMinRating(v as [number])} min={0} max={5} step={0.5} className="mb-2" />
-              <div className="text-sm text-muted-foreground">{minRating[0]}+ stars</div>
+              <div className="text-sm text-muted-foreground">{minRating[0] === 0 ? 'Any rating' : `${minRating[0]}+ stars`}</div>
             </div>
           </div>
 
@@ -142,30 +177,50 @@ export default function ArtisansPage() {
     </Card>
   )
 
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pb-20 md:pb-8">
+          <div className="container mx-auto px-4 py-16">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-4">Unable to load artisans</h1>
+              <p className="text-muted-foreground mb-4">{error}</p>
+              <Button onClick={() => window.location.reload()}>Try Again</Button>
+            </div>
+          </div>
+        </main>
+        <MobileNavigation />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <main className="pb-20 md:pb-8">
-        {/* Hero/Search */}
-        <section className="bg-gradient-to-r from-primary/10 to-orange-500/10 py-10">
-          <div className="container mx-auto px-4">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-              <h1 className="text-4xl font-bold mb-4">Artisans</h1>
-              <p className="text-lg text-muted-foreground mb-8">Meet the creators preserving Madagascar’s heritage through craftsmanship</p>
+        <AutoSkeleton isLoading={loading}>
+          {/* Hero/Search */}
+          <section className="bg-gradient-to-r from-primary/10 to-orange-500/10 py-10">
+            <div className="container mx-auto px-4">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+                <h1 className="text-4xl font-bold mb-4">Artisans</h1>
+                <p className="text-lg text-muted-foreground mb-8">Meet the creators preserving Madagascar's heritage through craftsmanship</p>
 
-              <div className="max-w-2xl mx-auto relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                <Input
-                  placeholder="Search artisans, crafts, or locations..."
-                  className="pl-12 h-12 text-base"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </motion.div>
-          </div>
-        </section>
+                <div className="max-w-2xl mx-auto relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                  <Input
+                    placeholder="Search artisans, crafts, or locations..."
+                    className="pl-12 h-12 text-base"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </motion.div>
+            </div>
+          </section>
 
         {/* Filters + Listing */}
         <section className="py-8">
@@ -293,6 +348,7 @@ export default function ArtisansPage() {
             </div>
           </div>
         </section>
+        </AutoSkeleton>
       </main>
 
       <MobileNavigation />

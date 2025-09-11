@@ -9,6 +9,7 @@ import { CartProvider } from "@/components/providers/cart-provider"
 import { WishlistProvider } from "@/components/providers/wishlist-provider"
 import { ProductsProvider } from "@/components/providers/products-provider"
 import { OrdersProvider } from "@/components/providers/orders-provider"
+import { ArtisansProvider } from "@/components/providers/artisans-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -32,8 +33,10 @@ export default function RootLayout({
               <WishlistProvider>
                 <ProductsProvider>
                   <OrdersProvider>
-                    {children}
-                    <Toaster />
+                    <ArtisansProvider>
+                      {children}
+                      <Toaster />
+                    </ArtisansProvider>
                   </OrdersProvider>
                 </ProductsProvider>
               </WishlistProvider>

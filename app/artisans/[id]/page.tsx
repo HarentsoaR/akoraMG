@@ -1,165 +1,228 @@
 "use client"
 
-import { useMemo } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft, MapPin, Star, Award, CheckCircle2, Sparkles } from "lucide-react"
+import { ArrowLeft, MapPin, Star, Calendar, Package, CheckCircle2, Mail, Phone, Globe } from "lucide-react"
+import { useParams, useRouter } from "next/navigation"
+
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { AutoSkeleton } from "@/components/ui/auto-skeleton"
 
 import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
-import { ARTISANS } from "@/lib/data/artisans"
-import { PRODUCTS } from "@/lib/data/products"
 import { ProductCard } from "@/components/products/product-card"
+import { useArtisans } from "@/components/providers/artisans-provider"
+
+type ArtisanProduct = {
+  id: number
+  name: string
+  description: string
+  category: string
+  price: number
+  originalPrice?: number
+  images: string[]
+  materials: string[]
+  inStock: boolean
+  isNew: boolean
+  isFeatured: boolean
+  rating: number
+  reviewsCount: number
+  createdAt: string
+}
 
 export default function ArtisanDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const id = Number(params?.id)
+  const { getArtisanById, loading: artisansLoading } = useArtisans()
+  const [products, setProducts] = useState<ArtisanProduct[]>([])
+  const [productsLoading, setProductsLoading] = useState(true)
+  const [productsError, setProductsError] = useState<string | null>(null)
 
-  const artisan = ARTISANS.find((a) => a.id === id)
+  const artisanId = params.id as string
+  const artisan = getArtisanById(artisanId)
 
-  const products = useMemo(() => {
-    if (!artisan) return []
-    return PRODUCTS.filter((p) => p.artisan.name === artisan.name).slice(0, 8)
-  }, [artisan])
+  useEffect(() => {
+    const fetchArtisanProducts = async () => {
+      if (!artisanId) return
 
-  if (!artisan) {
+      try {
+        setProductsLoading(true)
+        setProductsError(null)
+
+        const response = await fetch(`/api/artisans/${artisanId}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch artisan details')
+        }
+
+        const data = await response.json()
+        setProducts(data.products || [])
+      } catch (error) {
+        console.error('Error fetching artisan products:', error)
+        setProductsError(error instanceof Error ? error.message : 'Failed to fetch products')
+      } finally {
+        setProductsLoading(false)
+      }
+    }
+
+    fetchArtisanProducts()
+  }, [artisanId])
+
+  const loading = artisansLoading || productsLoading
+
+  // Show error state if artisan not found
+  if (!loading && !artisan) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card>
-          <CardContent className="p-6 text-center space-y-3">
-            <div className="text-xl font-semibold">Artisan not found</div>
-            <Button onClick={() => router.push("/artisans")}>Go back</Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pb-20 md:pb-8">
+          <div className="container mx-auto px-4 py-16">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-4">Artisan not found</h1>
+              <p className="text-muted-foreground mb-4">The artisan you're looking for doesn't exist.</p>
+              <Button onClick={() => router.push('/artisans')}>Back to Artisans</Button>
+            </div>
+          </div>
+        </main>
+        <MobileNavigation />
       </div>
     )
   }
-
-  const initials = artisan.name.split(" ").map((n) => n[0]).join("")
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <main className="pb-20 md:pb-8">
-        <section className="container mx-auto px-4 py-6">
-          <Button variant="ghost" size="sm" className="mb-4" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back
+        <AutoSkeleton isLoading={loading}>
+          {/* Back button */}
+          <div className="container mx-auto px-4 py-4">
+            <Button variant="ghost" onClick={() => router.back()} className="mb-4">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
           </Button>
+          </div>
 
-          {/* Hero */}
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-            <Card className="overflow-hidden">
-              <div className="relative bg-gradient-to-r from-primary/10 to-orange-500/10">
-                <div className="p-6">
-                  <div className="flex items-start gap-4">
-                    <Avatar className="h-16 w-16">
-                      <AvatarImage src={artisan.avatar || "/placeholder.svg"} />
-                      <AvatarFallback>{initials}</AvatarFallback>
+          {artisan && (
+            <>
+              {/* Artisan Hero */}
+              <section className="py-8">
+                <div className="container mx-auto px-4">
+                  <div className="grid gap-8 lg:grid-cols-3">
+                    {/* Artisan Info */}
+                    <div className="lg:col-span-2">
+                      <div className="flex items-start gap-6">
+                        <Avatar className="h-24 w-24">
+                          <AvatarImage src={artisan.avatar} alt={artisan.name} />
+                          <AvatarFallback>{artisan.name.charAt(0)}</AvatarFallback>
                     </Avatar>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h1 className="text-2xl font-bold clamp-2 pr-2">{artisan.name}</h1>
-                        {artisan.featured && <Badge className="bg-purple-500 text-white">Featured</Badge>}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h1 className="text-3xl font-bold">{artisan.name}</h1>
+                            {artisan.featured && (
+                              <Badge className="bg-purple-500 text-white">Featured</Badge>
+                            )}
                         {artisan.acceptsCustomOrders && (
-                          <Badge variant="secondary" className="flex items-center gap-1">
-                            <Sparkles className="h-3 w-3" /> Custom Orders
-                          </Badge>
+                              <Badge variant="secondary">Custom Orders</Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4 text-muted-foreground mb-4">
+                            <div className="flex items-center gap-1">
+                              <MapPin className="h-4 w-4" />
+                              {artisan.location}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              {artisan.rating} ({artisan.reviews} reviews)
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              {artisan.yearsExperience} years experience
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Package className="h-4 w-4" />
+                              {artisan.productsCount} products
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {artisan.crafts.map((craft) => (
+                              <Badge key={craft} variant="outline">{craft}</Badge>
+                            ))}
+                          </div>
+                          {artisan.bio && (
+                            <p className="text-muted-foreground leading-relaxed">{artisan.bio}</p>
                         )}
                       </div>
-
-                      <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{artisan.location}</span>
-                        <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />{artisan.rating} ({artisan.reviews})</span>
-                        <span className="rounded-md border px-2 py-0.5">{artisan.yearsExperience} years</span>
-                        <span className="rounded-md border px-2 py-0.5">{artisan.productsCount} products</span>
+                      </div>
                       </div>
 
-                      {artisan.bio && <p className="mt-3 text-sm text-muted-foreground clamp-3 max-w-3xl">{artisan.bio}</p>}
+                    {/* Contact Info */}
+                    <div>
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Contact Information</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <div className="flex items-center gap-3">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{artisan.email}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{artisan.location}</span>
+                          </div>
+                          {artisan.acceptsCustomOrders && (
+                            <div className="flex items-center gap-3">
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                              <span className="text-sm text-green-600">Accepts custom orders</span>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Card>
-          </motion.div>
+              </section>
 
-          {/* Crafts & Highlights */}
-          <div className="mt-6 grid gap-6 md:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <CardTitle>Crafts</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                {artisan.crafts.map((c) => (
-                  <Badge key={c} variant="outline">{c}</Badge>
-                ))}
-              </CardContent>
-            </Card>
+              <Separator />
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Highlights</CardTitle>
-              </CardHeader>
-              <CardContent className="grid gap-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2"><Award className="h-4 w-4" /> Verified craftsmanship</div>
-                <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> Ethical sourcing</div>
-                <div className="flex items-center gap-2"><Sparkles className="h-4 w-4" /> Limited editions</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Contact</CardTitle>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                <Button size="sm" className="rounded-full">Message</Button>
-                <Button size="sm" variant="outline" className="rounded-full">Request custom order</Button>
-              </CardContent>
-            </Card>
+              {/* Products Section */}
+              <section className="py-8">
+                <div className="container mx-auto px-4">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-2xl font-bold">Products by {artisan.name}</h2>
+                    <Badge variant="outline">{products.length} products</Badge>
           </div>
 
-          {/* Products by this artisan */}
-          {products.length > 0 && (
-            <section className="mt-8">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Products by {artisan.name}</h2>
-                <Button variant="ghost" size="sm" onClick={() => router.push(`/products?category=${artisan.crafts[0]?.toLowerCase().replace(/\s+/g, "-")}`)}>View more</Button>
+                  {productsError ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground mb-4">Unable to load products: {productsError}</p>
+                      <Button variant="outline" onClick={() => window.location.reload()}>
+                        Try Again
+                      </Button>
+                    </div>
+                  ) : products.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="text-6xl mb-4">🎨</div>
+                      <h3 className="text-xl font-semibold mb-2">No products yet</h3>
+                      <p className="text-muted-foreground">This artisan hasn't added any products yet.</p>
               </div>
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {products.map((p) => (
-                  <ProductCard
-                    key={p.id}
-                    product={{
-                      id: p.id,
-                      name: p.name,
-                      artisan: artisan.name,
-                      price: p.price,
-                      originalPrice: p.originalPrice,
-                      image: p.images[0] || "/placeholder.svg",
-                      rating: p.rating,
-                      reviews: p.reviews,
-                      category: p.category,
-                      isNew: p.isNew,
-                      isFeatured: p.isFeatured,
-                      isPopular: false,
-                      isLimited: false,
-                      discount: p.originalPrice ? Math.max(0, Math.round(((p.originalPrice - p.price) / p.originalPrice) * 100)) : undefined,
-                      culturalSignificance: undefined,
-                      materials: p.materials,
-                    }}
-                  />
-                ))}
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                      {products.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                  )}
               </div>
             </section>
+            </>
           )}
-        </section>
+        </AutoSkeleton>
       </main>
 
       <MobileNavigation />

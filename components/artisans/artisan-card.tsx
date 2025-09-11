@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
 
 type Artisan = {
-  id: number
+  id: string
   name: string
   avatar?: string
   location: string
