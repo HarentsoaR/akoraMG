@@ -98,54 +98,6 @@ const categories = ["All", ...categoryDefs.map((c) => c.label)]
 
 export default function ProductsPageClient() {
   const { products, loading, error } = useProducts()
-  
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="pt-16">
-          <section className="py-8">
-            <div className="container mx-auto px-4">
-              <div className="text-center py-16">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <h3 className="text-xl font-semibold mb-2">Loading products...</h3>
-                <p className="text-muted-foreground">Fetching the latest artisan crafts from our database</p>
-              </div>
-            </div>
-          </section>
-        </main>
-        <MobileNavigation />
-      </div>
-    )
-  }
-
-  // Show error state
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="pt-16">
-          <section className="py-8">
-            <div className="container mx-auto px-4">
-              <Alert variant="destructive" className="max-w-2xl mx-auto">
-                <AlertTitle>Unable to Load Products</AlertTitle>
-                <AlertDescription className="mt-2">
-                  {error}
-                  <br />
-                  <br />
-                  Please check your internet connection and try refreshing the page. 
-                  If the problem persists, contact support.
-                </AlertDescription>
-              </Alert>
-            </div>
-          </section>
-        </main>
-        <MobileNavigation />
-      </div>
-    )
-  }
-
   const allProducts = useMemo<Product[]>(
     () =>
       products.map((p) => ({
@@ -284,6 +236,53 @@ export default function ProductsPageClient() {
     showInStockOnly
 
   const clearMaterial = (m: string) => setSelectedMaterials((prev) => prev.filter((x) => x !== m))
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-16">
+          <section className="py-8">
+            <div className="container mx-auto px-4">
+              <div className="text-center py-16">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <h3 className="text-xl font-semibold mb-2">Loading products...</h3>
+                <p className="text-muted-foreground">Fetching the latest artisan crafts from our database</p>
+              </div>
+            </div>
+          </section>
+        </main>
+        <MobileNavigation />
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="pt-16">
+          <section className="py-8">
+            <div className="container mx-auto px-4">
+              <Alert variant="destructive" className="max-w-2xl mx-auto">
+                <AlertTitle>Unable to Load Products</AlertTitle>
+                <AlertDescription className="mt-2">
+                  {error}
+                  <br />
+                  <br />
+                  Please check your internet connection and try refreshing the page. 
+                  If the problem persists, contact support.
+                </AlertDescription>
+              </Alert>
+            </div>
+          </section>
+        </main>
+        <MobileNavigation />
+      </div>
+    )
+  }
 
   const Filters = (
     <Card className="sticky top-24">
