@@ -46,6 +46,7 @@ import { useProducts } from "@/components/providers/products-provider"
 import { ARTISANS } from "@/lib/data/artisans"
 import { useCart } from "@/components/providers/cart-provider"
 import { useWishlist } from "@/components/providers/wishlist-provider"
+import { AutoSkeleton } from "@/components/ui/auto-skeleton"
 
 // Helpers
 const slugify = (label: string) => label.toLowerCase().replace(/\s+/g, "-")
@@ -114,12 +115,13 @@ export default function ProductDetailPage() {
   const productId = params.id as string
   const { addItem } = useCart()
   const { isWished, toggle } = useWishlist()
-  const { products } = useProducts()
+  const { products, loading } = useProducts()
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [isFavorited, setIsFavorited] = useState(false)
   const [selectedTab, setSelectedTab] = useState("description")
+
 
 const productSource = products.find((p) => p.id === Number(productId))
 const artisan = productSource ? ARTISANS.find((a) => a.name === productSource.artisan.name && a.location === productSource.artisan.location) : undefined
@@ -229,30 +231,31 @@ const product = productSource
       <Header />
 
       <main className="pb-20 md:pb-8">
-        {/* Breadcrumb */}
-        <div className="container mx-auto px-4 py-4">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/">Home</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/categories">Categories</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink href={`/categories/${product.category.toLowerCase().replace(" ", "-")}`}>
-                  {product.category}
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{product.name}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <AutoSkeleton isLoading={loading}>
+          {/* Breadcrumb */}
+          <div className="container mx-auto px-4 py-4">
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="/">Home</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="/categories">Categories</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink href={`/categories/${product.category.toLowerCase().replace(" ", "-")}`}>
+                    {product.category}
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{product.name}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
 
         {/* Product Details */}
         <div className="container mx-auto px-4 py-8">
@@ -771,6 +774,7 @@ const product = productSource
             </div>
           </motion.div>
         </div>
+        </AutoSkeleton>
       </main>
 
       <MobileNavigation />

@@ -10,10 +10,11 @@ import { Search } from "lucide-react"
 import { useProducts } from "@/components/providers/products-provider"
 import { ARTISANS } from "@/lib/data/artisans"
 import { ProductCard } from "@/components/products/product-card"
+import { AutoSkeleton } from "@/components/ui/auto-skeleton"
 
 export default function SearchClient() {
   const [q, setQ] = useState("")
-  const { products } = useProducts()
+  const { products, loading } = useProducts()
 
   const matches = useMemo(() => {
     if (!q.trim()) return [] as any[]
@@ -26,11 +27,13 @@ export default function SearchClient() {
     )
   }, [q])
 
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
       <main className="pb-24 md:pb-8">
-        <section className="bg-gradient-to-r from-primary/10 to-orange-500/10 py-8">
+        <AutoSkeleton isLoading={loading}>
+          <section className="bg-gradient-to-r from-primary/10 to-orange-500/10 py-8">
           <div className="container mx-auto px-4">
             <div className="max-w-2xl mx-auto relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
@@ -85,6 +88,7 @@ export default function SearchClient() {
             )}
           </div>
         </section>
+        </AutoSkeleton>
       </main>
       <MobileNavigation />
     </div>

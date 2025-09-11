@@ -22,6 +22,7 @@ import { Header } from "@/components/layout/header"
 import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { formatPrice } from "@/lib/utils"
 import { useProducts } from "@/components/providers/products-provider"
+import { AutoSkeleton } from "@/components/ui/auto-skeleton"
 
 // Category meta
 const categoryData = {
@@ -96,7 +97,7 @@ export default function CategoryPage() {
   const params = useParams()
   const router = useRouter()
   const categorySlug = params.category as string
-  const { products } = useProducts()
+  const { products, loading } = useProducts()
   const allProducts = mapProducts(products)
 
   const [priceRange, setPriceRange] = useState([0, 200000])
@@ -146,6 +147,7 @@ export default function CategoryPage() {
     setFilteredProducts(filtered)
   }, [categorySlug, priceRange, sortBy, selectedMaterials, showInStockOnly, category])
 
+
   if (!category) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -175,24 +177,25 @@ export default function CategoryPage() {
       <Header />
 
       <main className="pb-20 md:pb-8">
-        {/* Breadcrumb */}
-        <div className="container mx-auto px-4 py-4">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/">Home</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbLink href="/categories">Categories</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>{category.name}</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        </div>
+        <AutoSkeleton isLoading={loading}>
+          {/* Breadcrumb */}
+          <div className="container mx-auto px-4 py-4">
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="/">Home</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink href="/categories">Categories</BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbPage>{category.name}</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
 
         {/* Category Hero */}
         <section className="relative overflow-hidden">
@@ -505,6 +508,7 @@ export default function CategoryPage() {
             </div>
           </div>
         </section>
+        </AutoSkeleton>
       </main>
 
       <MobileNavigation />

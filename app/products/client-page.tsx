@@ -20,6 +20,7 @@ import { ProductCard } from "@/components/products/product-card"
 import { formatPrice } from "@/lib/utils"
 import { useProducts } from "@/components/providers/products-provider"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AutoSkeleton } from "@/components/ui/auto-skeleton"
 
 type Product = {
   id: number
@@ -237,26 +238,6 @@ export default function ProductsPageClient() {
 
   const clearMaterial = (m: string) => setSelectedMaterials((prev) => prev.filter((x) => x !== m))
 
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="pt-16">
-          <section className="py-8">
-            <div className="container mx-auto px-4">
-              <div className="text-center py-16">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <h3 className="text-xl font-semibold mb-2">Loading products...</h3>
-                <p className="text-muted-foreground">Fetching the latest artisan crafts from our database</p>
-              </div>
-            </div>
-          </section>
-        </main>
-        <MobileNavigation />
-      </div>
-    )
-  }
 
   // Show error state
   if (error) {
@@ -358,57 +339,58 @@ export default function ProductsPageClient() {
       <Header />
 
       <main className="pb-20 md:pb-8">
-        {/* Hero/Search */}
-        <section className="bg-gradient-to-r from-primary/10 to-orange-500/10 py-10">
-          <div className="container mx-auto px-4">
-            {error && (
-              <div className="mb-4">
-                <Alert variant="destructive">
-                  <AlertTitle>Unable to load live products</AlertTitle>
-                  <AlertDescription>
-                    {error}. Showing local demo products instead.
-                  </AlertDescription>
-                </Alert>
-              </div>
-            )}
-            {loading && !error && (
-              <div className="mb-4 text-sm text-muted-foreground">Loading products…</div>
-            )}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-              <h1 className="text-4xl font-bold mb-4">All Products</h1>
-              <p className="text-lg text-muted-foreground mb-8">Discover authentic Malagasy crafts from artisans across Madagascar</p>
-
-              <div className="max-w-2xl mx-auto relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
-                <Input
-                  placeholder="Search products, artisans, or materials..."
-                  className="pl-12 h-12 text-base"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              {/* Browse by Category */}
-              <div className="mt-6 overflow-x-auto">
-                <div className="flex gap-3 justify-center min-w-max px-2">
-                  {categories.map((label) => (
-                    <Button
-                      key={label}
-                      variant={selectedCategory === label ? "default" : "outline"}
-                      size="sm"
-                      className="rounded-full"
-                      onClick={() => setSelectedCategory(label)}
-                    >
-                      {label}
-                      <Badge variant="secondary" className="ml-2">
-                        {label === "All" ? allProducts.length : (categoryCounts.get(label) || 0)}
-                      </Badge>
-                    </Button>
-                  ))}
+        <AutoSkeleton isLoading={loading}>
+          {/* Hero/Search */}
+          <section className="bg-gradient-to-r from-primary/10 to-orange-500/10 py-10">
+            <div className="container mx-auto px-4">
+              {error && (
+                <div className="mb-4">
+                  <Alert variant="destructive">
+                    <AlertTitle>Unable to load live products</AlertTitle>
+                    <AlertDescription>
+                      {error}. Showing local demo products instead.
+                    </AlertDescription>
+                  </Alert>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
+              )}
+              {loading && !error && (
+                <div className="mb-4 text-sm text-muted-foreground">Loading products…</div>
+              )}
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
+                <h1 className="text-4xl font-bold mb-4">All Products</h1>
+                <p className="text-lg text-muted-foreground mb-8">Discover authentic Malagasy crafts from artisans across Madagascar</p>
+
+                <div className="max-w-2xl mx-auto relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground h-5 w-5" />
+                  <Input
+                    placeholder="Search products, artisans, or materials..."
+                    className="pl-12 h-12 text-base"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                {/* Browse by Category */}
+                <div className="mt-6 overflow-x-auto">
+                  <div className="flex gap-3 justify-center min-w-max px-2">
+                    {categories.map((label) => (
+                      <Button
+                        key={label}
+                        variant={selectedCategory === label ? "default" : "outline"}
+                        size="sm"
+                        className="rounded-full"
+                        onClick={() => setSelectedCategory(label)}
+                      >
+                        {label}
+                        <Badge variant="secondary" className="ml-2">
+                          {label === "All" ? allProducts.length : (categoryCounts.get(label) || 0)}
+                        </Badge>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </section>
 
         {/* Category Overview when a specific category selected */}
         {selectedCategory !== "All" && (
@@ -615,31 +597,32 @@ export default function ProductsPageClient() {
           </div>
         </section>
 
-        {/* Highlights */}
-        <section className="py-12 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="grid gap-6 md:grid-cols-3">
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-1">Authentic Artisans</h3>
-                  <p className="text-sm text-muted-foreground">Every product is handcrafted by Malagasy artisans using traditional techniques.</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-1">Fair Trade</h3>
-                  <p className="text-sm text-muted-foreground">Our platform promotes fair pricing and supports local communities.</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <h3 className="font-semibold mb-1">Sustainable Materials</h3>
-                  <p className="text-sm text-muted-foreground">We highlight products using eco-friendly and locally sourced materials.</p>
-                </CardContent>
-              </Card>
-            </motion.div>
-          </div>
-        </section>
+          {/* Highlights */}
+          <section className="py-12 bg-muted/30">
+            <div className="container mx-auto px-4">
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="grid gap-6 md:grid-cols-3">
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold mb-1">Authentic Artisans</h3>
+                    <p className="text-sm text-muted-foreground">Every product is handcrafted by Malagasy artisans using traditional techniques.</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold mb-1">Fair Trade</h3>
+                    <p className="text-sm text-muted-foreground">Our platform promotes fair pricing and supports local communities.</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="font-semibold mb-1">Sustainable Materials</h3>
+                    <p className="text-sm text-muted-foreground">We highlight products using eco-friendly and locally sourced materials.</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
+          </section>
+        </AutoSkeleton>
       </main>
 
       <MobileNavigation />
