@@ -19,7 +19,7 @@ import { MobileNavigation } from "@/components/navigation/mobile-navigation"
 import { ProductCard } from "@/components/products/product-card"
 import { formatPrice } from "@/lib/utils"
 import { useProducts } from "@/components/providers/products-provider"
-import { DebugProducts } from "@/components/debug-products"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 type Product = {
   id: number
@@ -97,7 +97,7 @@ const categoryMeta: Record<string, { description: string; heritage: string; imag
 const categories = ["All", ...categoryDefs.map((c) => c.label)]
 
 export default function ProductsPageClient() {
-  const { products } = useProducts()
+  const { products, loading, error } = useProducts()
   const allProducts = useMemo<Product[]>(
     () =>
       products.map((p) => ({
@@ -309,12 +309,24 @@ export default function ProductsPageClient() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <DebugProducts />
 
       <main className="pb-20 md:pb-8">
         {/* Hero/Search */}
         <section className="bg-gradient-to-r from-primary/10 to-orange-500/10 py-10">
           <div className="container mx-auto px-4">
+            {error && (
+              <div className="mb-4">
+                <Alert variant="destructive">
+                  <AlertTitle>Unable to load live products</AlertTitle>
+                  <AlertDescription>
+                    {error}. Showing local demo products instead.
+                  </AlertDescription>
+                </Alert>
+              </div>
+            )}
+            {loading && !error && (
+              <div className="mb-4 text-sm text-muted-foreground">Loading products…</div>
+            )}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
               <h1 className="text-4xl font-bold mb-4">All Products</h1>
               <p className="text-lg text-muted-foreground mb-8">Discover authentic Malagasy crafts from artisans across Madagascar</p>

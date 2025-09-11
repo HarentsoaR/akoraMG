@@ -26,6 +26,8 @@ type NewProductInput = {
 
 interface ProductsContextType {
   products: ProductExt[]
+  loading: boolean
+  error: string | null
   addProduct: (input: NewProductInput) => Promise<number>
   updateProduct: (id: number, patch: Partial<ProductExt>) => void
   deleteProduct: (id: number) => Promise<void>
@@ -40,6 +42,7 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
   const [customProducts, setCustomProducts] = useState<ProductExt[]>([])
   const [remoteProducts, setRemoteProducts] = useState<ProductExt[]>([])
   const [loading, setLoading] = useState<boolean>(true)
+  const [error, setError] = useState<string | null>(null)
   const { user } = useAuth() as any
 
   useEffect(() => {
@@ -58,21 +61,12 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
   const products: ProductExt[] = useMemo(() => {
     // Always show custom products first, then remote products, then fallback to PRODUCTS
     const base = remoteProducts.length > 0 ? remoteProducts : PRODUCTS
-    const allProducts = [...customProducts, ...base]
-    console.log("Products updated:", { customProducts: customProducts.length, remoteProducts: remoteProducts.length, total: allProducts.length })
-    return allProducts
+    return [...customProducts, ...base]
   }, [customProducts, remoteProducts])
 
   // Fetch products from Supabase with artisan data
   useEffect(() => {
     const fetchProducts = async () => {
-      console.log("Environment check:", {
-        NODE_ENV: process.env.NODE_ENV,
-        SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Not set',
-        SUPABASE_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Not set',
-        SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'Not set'
-      })
-      
       try {
         // First, try a simple query to check if products table exists
         const { data, error } = await supabase
@@ -102,18 +96,10 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
           .order("created_at", { ascending: false })
 
         if (error) {
-          console.error("Database error:", error)
-          console.error("Error details:", {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          })
+          setError(error.message || "Failed to load products")
           throw error
         }
-        
-        console.log("Fetched products from database:", data?.length || 0, "products")
-        
+
         // If we have products, try to get artisan data for each
         const mapped: ProductExt[] = []
         
@@ -139,8 +125,7 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
               artisanLocation = (artisanData as any).location || ""
             }
           } catch (artisanError) {
-            // If artisan profile doesn't exist, use fallback
-            console.warn("No artisan profile found for product", product.id)
+            // If artisan profile doesn't exist, use fallback silently
           }
           
           mapped.push({
@@ -165,18 +150,10 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
           })
         }
         
-        console.log("Mapped products:", mapped.length, "products")
-        console.log("Sample mapped product:", mapped[0])
         setRemoteProducts(mapped)
       } catch (e) {
         console.error("Fetch products failed", e)
-        console.error("Error details:", e)
-        
-        // Check if it's a configuration issue
-        if (e instanceof Error && e.message.includes('Invalid API key')) {
-          console.error("❌ Supabase API key is invalid or not set in production")
-        }
-        
+        if (!error) setError(e instanceof Error ? e.message : "Failed to load products")
         // Fallback to local data if database fails
         setRemoteProducts([])
       } finally {
@@ -187,9 +164,6 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const addProduct = useCallback(async (input: NewProductInput) => {
-    console.log("addProduct called with:", input)
-    console.log("User:", user)
-    
     if (!user?.id) {
       console.error("User must be authenticated to add products")
       return 0
@@ -200,7 +174,6 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     
     if (!supabaseUrl || !supabaseKey || supabaseUrl === "" || supabaseKey === "") {
-      console.warn("Supabase not configured, using local storage fallback")
       
       // Fallback to local storage
       const nextId = products.reduce((max, p) => Math.max(max, p.id), 0) + 1
@@ -228,11 +201,8 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
         createdAt: new Date().toISOString(),
       }
       
-      console.log("Adding product to customProducts:", newProduct)
       setCustomProducts((prev) => {
-        const updated = [newProduct, ...prev]
-        console.log("Updated customProducts:", updated.length)
-        return updated
+        return [newProduct, ...prev]
       })
       
       return nextId
@@ -240,18 +210,6 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
 
     // Try to add to Supabase first
     try {
-      console.log("Attempting to add product to Supabase...")
-      console.log("User ID:", user.id)
-      console.log("User email:", user.email)
-      console.log("Product data:", {
-        name: input.name,
-        category: input.category,
-        price: input.price,
-        materials: input.materials
-      })
-
-      // First test the connection and check if user exists in our database
-      console.log("Testing database connection...")
       const { data: testData, error: testError } = await supabase
         .from("users")
         .select("id, name, email")
@@ -259,26 +217,18 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (testError) {
-        console.error("User not found in database:", testError)
         throw new Error(`User not found in database: ${testError.message}`)
       }
 
-      console.log("User found in database:", testData)
-
       // Safety: enforce enum-compatible category value
       const categoryValue = (typeof input.category === "string" ? (input.category as any) : input.category) as ProductData["category"]
-
-      console.log("Inserting product with category:", categoryValue)
 
       // Get the current session to ensure we're authenticated
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
       if (sessionError || !session) {
-        console.error("No active session found:", sessionError)
         throw new Error("You must be logged in to add products")
       }
-
-      console.log("Using authenticated session for user:", session.user.email)
 
       const { data, error } = await supabase
         .from("products")
@@ -302,17 +252,8 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (error) {
-        console.error("Supabase insert error:", error)
-        console.error("Error details:", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        })
         throw error
       }
-
-      console.log("Successfully added product to Supabase:", data)
 
       // Optimistically map and prepend the new product without refetching all
       let artisanName = ""
@@ -333,7 +274,7 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
           artisanLocation = (artisanData as any).location || ""
         }
       } catch (artisanError) {
-        console.warn("No artisan profile found for new product", data.id)
+        // ignore
       }
 
       const mappedNew: ProductExt = {
@@ -386,11 +327,8 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
         createdAt: new Date().toISOString(),
       }
       
-      console.log("Adding product to customProducts as fallback:", newProduct)
       setCustomProducts((prev) => {
-        const updated = [newProduct, ...prev]
-        console.log("Updated customProducts:", updated.length)
-        return updated
+        return [newProduct, ...prev]
       })
       
       return nextId
@@ -421,7 +359,7 @@ export function ProductsProvider({ children }: { children: React.ReactNode }) {
 
   const getById = useCallback((id: number) => products.find((p) => p.id === id), [products])
 
-  const value: ProductsContextType = { products, addProduct, updateProduct, deleteProduct, getById }
+  const value: ProductsContextType = { products, loading, error, addProduct, updateProduct, deleteProduct, getById }
 
   return <ProductsContext.Provider value={value}>{children}</ProductsContext.Provider>
 }
